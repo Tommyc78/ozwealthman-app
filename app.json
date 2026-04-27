@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "OzWealthman",
+    "slug": "ozwealthman",
+    "scheme": "ozwealthman",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#08110F"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.ozwealthman.app"
+    },
+    "android": {
+      "package": "com.ozwealthman.app"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {}
+    }
+  }
+}
