@@ -23,7 +23,7 @@
       "package": "com.ozwealthman.app"
     },
     "web": {
-  "favicon": "./public/favicon.png"
+  "favicon": "./assets/favicon.png"
 },
     "plugins": [
       "expo-router"
