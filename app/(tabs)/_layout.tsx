@@ -1,10 +1,12 @@
 import { Slot } from 'expo-router';
-import { Platform } from 'react-native';
+import { Platform, useWindowDimensions } from 'react-native';
 import { MobileTabNavigator } from '@/layouts/MobileTabNavigator';
 import { WebAppShell } from '@/layouts/WebAppShell';
 
 export default function TabsLayout() {
-  if (Platform.OS === 'web') {
+  const { width } = useWindowDimensions();
+
+  if (Platform.OS === 'web' && width >= 768) {
     return (
       <WebAppShell>
         <Slot />
@@ -14,3 +16,4 @@ export default function TabsLayout() {
 
   return <MobileTabNavigator />;
 }
+
