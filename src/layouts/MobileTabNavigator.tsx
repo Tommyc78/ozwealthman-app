@@ -5,7 +5,12 @@ import { useWealthTheme } from '@/theme/ThemeProvider';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
-const icons: Record<string, IconName> = Object.fromEntries(mainRoutes.map((route) => [route.key, route.icon])) as Record<string, IconName>;
+const icons: Record<string, IconName> = Object.fromEntries(
+  mainRoutes.map((route) => [route.key, route.icon])
+) as Record<string, IconName>;
+
+// Only show 5 key tabs on mobile — the rest are still navigable routes
+const visibleTabs = new Set(['index', 'budget', 'investments', 'ai', 'settings']);
 
 export function MobileTabNavigator() {
   const { colors } = useWealthTheme();
@@ -28,12 +33,22 @@ export function MobileTabNavigator() {
           fontWeight: '700',
         },
         tabBarIcon: ({ color, size }) => (
-          <Ionicons name={icons[route.name] ?? 'ellipse-outline'} color={color} size={size} />
+          <Ionicons
+            name={icons[route.name] ?? 'ellipse-outline'}
+            color={color}
+            size={size}
+          />
         ),
+        // Hide non-essential tabs from the bottom bar
+        ...(visibleTabs.has(route.name) ? {} : { tabBarButton: () => null }),
       })}
     >
       {mainRoutes.map((route) => (
-        <Tabs.Screen key={route.key} name={route.key} options={{ title: route.shortLabel }} />
+        <Tabs.Screen
+          key={route.key}
+          name={route.key}
+          options={{ title: route.shortLabel }}
+        />
       ))}
     </Tabs>
   );
