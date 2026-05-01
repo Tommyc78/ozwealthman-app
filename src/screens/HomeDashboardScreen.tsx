@@ -73,7 +73,7 @@ export function HomeDashboardScreen() {
         </View>
       </Panel>
 
-      <Panel style={styles.startPanel}>
+      <Panel style={[styles.startPanel, isDesktopWeb && styles.startPanelDesktop]}>
         <View style={styles.startCopy}>
           <Text variant="label" subtle>
             START HERE
@@ -487,9 +487,11 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   startPanel: {
+    gap: 18,
+  },
+  startPanelDesktop: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 18,
   },
   startCopy: {
     flex: 1,
@@ -497,10 +499,8 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   startActions: {
-    flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    justifyContent: 'flex-end',
   },
   startAction: {
     alignItems: 'center',
