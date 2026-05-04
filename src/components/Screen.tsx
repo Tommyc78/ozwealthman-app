@@ -1,5 +1,5 @@
 import { PropsWithChildren } from 'react';
-import { Platform, ScrollView, StyleProp, StyleSheet, ViewStyle, useWindowDimensions } from 'react-native';
+import { ScrollView, StyleProp, StyleSheet, ViewStyle, useWindowDimensions, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useWealthTheme } from '@/theme/ThemeProvider';
 
@@ -15,11 +15,11 @@ export function Screen({ children, contentContainerStyle }: Props) {
 
   return (
     <SafeAreaView
-      style={[styles.safeArea, { backgroundColor: isWeb ? 'transparent' : colors.background }]}
+      style={[styles.safeArea, { backgroundColor: colors.background }]}
       edges={isWeb ? [] : ['top']}
     >
       <ScrollView
-        style={{ backgroundColor: 'transparent' }}
+        style={{ backgroundColor: colors.background }}
         contentContainerStyle={[
           styles.content,
           {
