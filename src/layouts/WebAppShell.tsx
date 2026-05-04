@@ -1,7 +1,7 @@
 import { PropsWithChildren, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { router, usePathname } from 'expo-router';
-import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { Image, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
 import { useAppData } from '@/data/AppDataProvider';
 import { getRouteForPath, mainRoutes } from '@/navigation/mainRoutes';
@@ -21,17 +21,47 @@ export function WebAppShell({ children }: PropsWithChildren) {
       return;
     }
 
-    document.body.style.backgroundColor = colors.background;
+    document.body.style.margin = '0';
+    document.body.style.background = `
+      radial-gradient(ellipse 80% 50% at 10% 15%, rgba(16, 120, 60, 0.22) 0%, transparent 50%),
+      radial-gradient(ellipse 60% 45% at 90% 80%, rgba(212, 175, 55, 0.14) 0%, transparent 45%),
+      radial-gradient(ellipse 40% 35% at 50% 45%, rgba(34, 197, 94, 0.08) 0%, transparent 50%),
+      ${colors.background}
+    `;
     document.body.style.overflow = 'hidden';
+    document.body.style.minHeight = '100vh';
 
     return () => {
       document.body.style.overflow = '';
     };
   }, [colors.background]);
 
+  const glassStyle = Platform.OS === 'web'
+    ? ({
+        backdropFilter: 'blur(24px) saturate(150%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(150%)',
+      } as any)
+    : {};
+
+  const topbarGlass = Platform.OS === 'web'
+    ? ({
+        backdropFilter: 'blur(16px) saturate(130%)',
+        WebkitBackdropFilter: 'blur(16px) saturate(130%)',
+      } as any)
+    : {};
+
   return (
-    <View style={[styles.shell, { backgroundColor: colors.background }]}>
-      <View style={[styles.sidebar, { backgroundColor: colors.surface, borderRightColor: colors.border }]}>
+    <View style={[styles.shell, { backgroundColor: 'transparent' }]}>
+      <View
+        style={[
+          styles.sidebar,
+          {
+            backgroundColor: colors.surface,
+            borderRightColor: colors.border,
+          },
+          glassStyle,
+        ]}
+      >
         <View style={styles.brandStack}>
           <Image source={ozWealthmanLogo} style={styles.logo} resizeMode="contain" />
           <View>
@@ -99,7 +129,16 @@ export function WebAppShell({ children }: PropsWithChildren) {
           <View style={[styles.shellLine, { backgroundColor: `${colors.accentStrong}22` }]} />
           <View style={[styles.shellLineSecondary, { backgroundColor: `${colors.chartFive}18` }]} />
         </View>
-        <View style={[styles.topbar, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
+        <View
+          style={[
+            styles.topbar,
+            {
+              backgroundColor: `${colors.background}88`,
+              borderBottomColor: colors.border,
+            },
+            topbarGlass,
+          ]}
+        >
           <View>
             <Text variant="small" subtle weight="900">
               AUSTRALIAN WEALTH DASHBOARD
