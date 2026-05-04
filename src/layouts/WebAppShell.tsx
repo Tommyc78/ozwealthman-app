@@ -1,7 +1,7 @@
 import { PropsWithChildren, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { router, usePathname } from 'expo-router';
-import { Image, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
 import { useAppData } from '@/data/AppDataProvider';
 import { getRouteForPath, mainRoutes } from '@/navigation/mainRoutes';
@@ -22,13 +22,7 @@ export function WebAppShell({ children }: PropsWithChildren) {
     }
 
     document.body.style.margin = '0';
-    document.body.style.background = `
-      radial-gradient(ellipse 70% 55% at 5% 10%, rgba(20, 184, 166, 0.18) 0%, transparent 50%),
-      radial-gradient(ellipse 55% 45% at 95% 85%, rgba(139, 92, 246, 0.14) 0%, transparent 45%),
-      radial-gradient(ellipse 45% 35% at 50% 50%, rgba(245, 158, 11, 0.06) 0%, transparent 50%),
-      radial-gradient(ellipse 80% 60% at 60% 20%, rgba(6, 182, 212, 0.08) 0%, transparent 55%),
-      #0B0F1E
-    `;
+    document.body.style.backgroundColor = colors.background;
     document.body.style.overflow = 'hidden';
     document.body.style.minHeight = '100vh';
 
@@ -37,22 +31,8 @@ export function WebAppShell({ children }: PropsWithChildren) {
     };
   }, [colors.background]);
 
-  const glassStyle = Platform.OS === 'web'
-    ? ({
-        backdropFilter: 'blur(28px) saturate(160%)',
-        WebkitBackdropFilter: 'blur(28px) saturate(160%)',
-      } as any)
-    : {};
-
-  const topbarGlass = Platform.OS === 'web'
-    ? ({
-        backdropFilter: 'blur(20px) saturate(140%)',
-        WebkitBackdropFilter: 'blur(20px) saturate(140%)',
-      } as any)
-    : {};
-
   return (
-    <View style={[styles.shell, { backgroundColor: 'transparent' }]}>
+    <View style={[styles.shell, { backgroundColor: colors.background }]}>
       <View
         style={[
           styles.sidebar,
@@ -60,7 +40,6 @@ export function WebAppShell({ children }: PropsWithChildren) {
             backgroundColor: colors.surface,
             borderRightColor: colors.border,
           },
-          glassStyle,
         ]}
       >
         <View style={styles.brandStack}>
@@ -128,10 +107,9 @@ export function WebAppShell({ children }: PropsWithChildren) {
           style={[
             styles.topbar,
             {
-              backgroundColor: `${colors.background}88`,
+              backgroundColor: colors.surface,
               borderBottomColor: colors.border,
             },
-            topbarGlass,
           ]}
         >
           <View>
@@ -190,8 +168,8 @@ export function WebAppShell({ children }: PropsWithChildren) {
                 { backgroundColor: colors.accent, borderColor: colors.accent, opacity: pressed ? 0.82 : 1 },
               ]}
             >
-              <Ionicons name="chatbubble-ellipses-outline" color="#0B0F1E" size={18} />
-              <Text weight="900" style={{ color: '#0B0F1E' }}>
+              <Ionicons name="chatbubble-ellipses-outline" color={colors.background} size={18} />
+              <Text weight="900" style={{ color: colors.background }}>
                 Ask OzWealthman
               </Text>
             </Pressable>
