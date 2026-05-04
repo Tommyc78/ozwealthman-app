@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Platform, View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
 import { Stack, useSegments, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ThemeProvider, useWealthTheme } from '@/theme/ThemeProvider';
@@ -10,8 +10,7 @@ function AuthGate() {
   const { user, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
-  const { colorScheme, colors } = useWealthTheme();
-  const isWeb = Platform.OS === 'web';
+  const { colors } = useWealthTheme();
 
   useEffect(() => {
     if (loading) return;
@@ -36,7 +35,7 @@ function AuthGate() {
       <StatusBar style="light" backgroundColor={colors.background} />
       <Stack screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: isWeb ? 'transparent' : colors.background },
+        contentStyle: { backgroundColor: colors.background },
       }} />
     </>
   );
