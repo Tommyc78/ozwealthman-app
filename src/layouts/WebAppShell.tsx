@@ -23,10 +23,11 @@ export function WebAppShell({ children }: PropsWithChildren) {
 
     document.body.style.margin = '0';
     document.body.style.background = `
-      radial-gradient(ellipse 80% 50% at 10% 15%, rgba(16, 120, 60, 0.22) 0%, transparent 50%),
-      radial-gradient(ellipse 60% 45% at 90% 80%, rgba(212, 175, 55, 0.14) 0%, transparent 45%),
-      radial-gradient(ellipse 40% 35% at 50% 45%, rgba(34, 197, 94, 0.08) 0%, transparent 50%),
-      ${colors.background}
+      radial-gradient(ellipse 70% 55% at 5% 10%, rgba(20, 184, 166, 0.18) 0%, transparent 50%),
+      radial-gradient(ellipse 55% 45% at 95% 85%, rgba(139, 92, 246, 0.14) 0%, transparent 45%),
+      radial-gradient(ellipse 45% 35% at 50% 50%, rgba(245, 158, 11, 0.06) 0%, transparent 50%),
+      radial-gradient(ellipse 80% 60% at 60% 20%, rgba(6, 182, 212, 0.08) 0%, transparent 55%),
+      #0B0F1E
     `;
     document.body.style.overflow = 'hidden';
     document.body.style.minHeight = '100vh';
@@ -38,15 +39,15 @@ export function WebAppShell({ children }: PropsWithChildren) {
 
   const glassStyle = Platform.OS === 'web'
     ? ({
-        backdropFilter: 'blur(24px) saturate(150%)',
-        WebkitBackdropFilter: 'blur(24px) saturate(150%)',
+        backdropFilter: 'blur(28px) saturate(160%)',
+        WebkitBackdropFilter: 'blur(28px) saturate(160%)',
       } as any)
     : {};
 
   const topbarGlass = Platform.OS === 'web'
     ? ({
-        backdropFilter: 'blur(16px) saturate(130%)',
-        WebkitBackdropFilter: 'blur(16px) saturate(130%)',
+        backdropFilter: 'blur(20px) saturate(140%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(140%)',
       } as any)
     : {};
 
@@ -123,12 +124,6 @@ export function WebAppShell({ children }: PropsWithChildren) {
       </View>
 
       <View style={styles.main}>
-        <View style={styles.shellBackdrop} pointerEvents="none">
-          <View style={[styles.shellGlow, { backgroundColor: `${colors.accent}10` }]} />
-          <View style={[styles.shellGlowSecondary, { backgroundColor: `${colors.chartFive}10` }]} />
-          <View style={[styles.shellLine, { backgroundColor: `${colors.accentStrong}22` }]} />
-          <View style={[styles.shellLineSecondary, { backgroundColor: `${colors.chartFive}18` }]} />
-        </View>
         <View
           style={[
             styles.topbar,
@@ -195,8 +190,8 @@ export function WebAppShell({ children }: PropsWithChildren) {
                 { backgroundColor: colors.accent, borderColor: colors.accent, opacity: pressed ? 0.82 : 1 },
               ]}
             >
-              <Ionicons name="chatbubble-ellipses-outline" color={colors.background} size={18} />
-              <Text weight="900" style={{ color: colors.background }}>
+              <Ionicons name="chatbubble-ellipses-outline" color="#0B0F1E" size={18} />
+              <Text weight="900" style={{ color: '#0B0F1E' }}>
                 Ask OzWealthman
               </Text>
             </Pressable>
@@ -284,41 +279,6 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     overflow: 'hidden',
-  },
-  shellBackdrop: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  shellGlow: {
-    height: 220,
-    left: -80,
-    opacity: 1,
-    position: 'absolute',
-    top: -80,
-    transform: [{ rotate: '-8deg' }],
-    width: 520,
-  },
-  shellGlowSecondary: {
-    bottom: -120,
-    height: 260,
-    opacity: 1,
-    position: 'absolute',
-    right: -120,
-    transform: [{ rotate: '9deg' }],
-    width: 520,
-  },
-  shellLine: {
-    height: 1,
-    left: 24,
-    position: 'absolute',
-    right: 24,
-    top: 96,
-  },
-  shellLineSecondary: {
-    height: 1,
-    left: 24,
-    position: 'absolute',
-    right: 24,
-    top: 102,
   },
   topbar: {
     alignItems: 'center',
