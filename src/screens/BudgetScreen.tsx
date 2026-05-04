@@ -34,7 +34,7 @@ const AU_CATEGORIES = [
   ]},
 ];
 
-export default function BudgetScreen() {
+export function BudgetScreen() {
   const { colors, radius, spacing } = useWealthTheme();
   const [budgetData] = useState(AU_CATEGORIES);
 
