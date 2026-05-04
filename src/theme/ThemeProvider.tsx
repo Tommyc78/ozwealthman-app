@@ -1,6 +1,4 @@
-// src/theme/ThemeProvider.tsx
 import { createContext, PropsWithChildren, useContext, useMemo } from 'react';
-import { useColorScheme } from 'react-native';
 import { darkColors, lightColors, radius, spacing, typography } from './tokens';
 
 type WealthTheme = {
@@ -14,17 +12,15 @@ type WealthTheme = {
 const ThemeContext = createContext<WealthTheme | undefined>(undefined);
 
 export function ThemeProvider({ children }: PropsWithChildren) {
-  const scheme = useColorScheme();
-
   const value = useMemo<WealthTheme>(
     () => ({
-      colorScheme: scheme === 'dark' ? 'dark' : 'light',
-      colors: scheme === 'dark' ? darkColors : lightColors,   // Now using the new modern colors
+      colorScheme: 'dark',
+      colors: darkColors,
       spacing,
       radius,
       typography,
     }),
-    [scheme],
+    [],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
