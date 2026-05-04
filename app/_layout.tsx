@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { Platform, View, ActivityIndicator } from 'react-native';
 import { Stack, useSegments, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ThemeProvider, useWealthTheme } from '@/theme/ThemeProvider';
@@ -11,6 +11,7 @@ function AuthGate() {
   const segments = useSegments();
   const router = useRouter();
   const { colorScheme, colors } = useWealthTheme();
+  const isWeb = Platform.OS === 'web';
 
   useEffect(() => {
     if (loading) return;
@@ -33,7 +34,10 @@ function AuthGate() {
   return (
     <>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} backgroundColor={colors.background} />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }} />
+      <Stack screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: isWeb ? 'transparent' : colors.background },
+      }} />
     </>
   );
 }
@@ -49,4 +53,3 @@ export default function RootLayout() {
     </AuthProvider>
   );
 }
-
