@@ -1,5 +1,5 @@
 import { PropsWithChildren } from 'react';
-import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { Platform, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { useWealthTheme } from '@/theme/ThemeProvider';
 
 type Props = PropsWithChildren<{
@@ -8,6 +8,15 @@ type Props = PropsWithChildren<{
 
 export function Panel({ children, style }: Props) {
   const { colors, radius, spacing } = useWealthTheme();
+
+  const glassWeb =
+    Platform.OS === 'web'
+      ? ({
+          backdropFilter: 'blur(18px) saturate(140%)',
+          WebkitBackdropFilter: 'blur(18px) saturate(140%)',
+        } as any)
+      : {};
+
   return (
     <View
       style={[
@@ -19,6 +28,7 @@ export function Panel({ children, style }: Props) {
           borderWidth: 1,
           padding: spacing.lg,
         },
+        glassWeb,
         style,
       ]}
     >
@@ -31,9 +41,9 @@ const styles = StyleSheet.create({
   panel: {
     gap: 10,
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.22,
-    shadowRadius: 24,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 4,
   },
 });
