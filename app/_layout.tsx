@@ -33,7 +33,7 @@ function AuthGate() {
 
   return (
     <>
-      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} backgroundColor={colors.background} />
+      <StatusBar style="light" backgroundColor={colors.background} />
       <Stack screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: isWeb ? 'transparent' : colors.background },
