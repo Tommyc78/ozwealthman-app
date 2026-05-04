@@ -1,13 +1,13 @@
-// OzWealthMan — Translucent Green & Gold / Futuristic Glass
+// OzWealthMan — Frosted Glass / Green & Gold
 
 export const lightColors = {
-  background: '#EFF5F1',
-  surface: 'rgba(255, 255, 255, 0.55)',
-  surfaceRaised: 'rgba(255, 255, 255, 0.78)',
+  background: '#E8F0EB',
+  surface: 'rgba(255, 255, 255, 0.52)',
+  surfaceRaised: 'rgba(255, 255, 255, 0.72)',
   text: '#0A1F15',
   textSubtle: '#4A6A58',
   muted: '#7A9A8A',
-  border: 'rgba(160, 145, 60, 0.18)',
+  border: 'rgba(160, 145, 60, 0.20)',
   accent: '#B8941E',
   accentStrong: '#9A7B15',
   success: '#16A34A',
@@ -21,13 +21,13 @@ export const lightColors = {
 };
 
 export const darkColors = {
-  background: '#060F0B',
-  surface: 'rgba(12, 32, 22, 0.55)',
-  surfaceRaised: 'rgba(18, 45, 30, 0.68)',
-  text: '#E4EDE8',
-  textSubtle: '#8FAA9A',
+  background: '#0B1E14',
+  surface: 'rgba(16, 46, 30, 0.45)',
+  surfaceRaised: 'rgba(22, 58, 38, 0.58)',
+  text: '#E8F2EC',
+  textSubtle: '#94B8A4',
   muted: '#5A7A6A',
-  border: 'rgba(212, 175, 55, 0.16)',
+  border: 'rgba(212, 175, 55, 0.14)',
   accent: '#D4AF37',
   accentStrong: '#F0C75E',
   success: '#34D399',
