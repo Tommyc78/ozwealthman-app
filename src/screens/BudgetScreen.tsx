@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { ScrollView, View, Text, TouchableOpacity, Alert } from 'react-native';
 import { useWealthTheme } from '@/theme/ThemeProvider';
-import * as DocumentPicker from 'expo-document-picker';
-import Papa from 'papaparse';
 
 const AU_CATEGORIES = [
   { group: "Housing", items: [
@@ -40,43 +38,22 @@ export default function BudgetScreen() {
   const { colors, radius, spacing } = useWealthTheme();
   const [budgetData] = useState(AU_CATEGORIES);
 
-  const handleUploadStatement = async () => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: ['text/csv', 'application/vnd.ms-excel'],
-      });
-
-      if (result.assets) {
-        const text = await fetch(result.assets[0].uri).then(r => r.text());
-        
-        Papa.parse(text, {
-          header: true,
-          skipEmptyLines: true,
-          complete: (results) => {
-            Alert.alert(
-              "Statement Imported",
-              `Successfully parsed ${results.data.length} transactions.\n\nReady for categorization.`
-            );
-            // TODO: Save to Supabase + auto-categorize
-          }
-        });
-      }
-    } catch (err) {
-      Alert.alert("Upload Failed", "Could not read the file.");
-    }
+  const handleUploadStatement = () => {
+    Alert.alert(
+      "Coming Soon",
+      "CSV bank statement upload will be available in the next release."
+    );
   };
 
   return (
-    <ScrollView 
+    <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
       contentContainerStyle={{ padding: spacing.xl }}
     >
-      {/* Header */}
       <Text style={{ fontSize: 28, fontWeight: '700', color: colors.text, marginBottom: spacing.lg }}>
         Monthly Budget
       </Text>
 
-      {/* Quick Stats */}
       <View style={{
         backgroundColor: colors.surface,
         borderRadius: radius.lg,
@@ -92,8 +69,7 @@ export default function BudgetScreen() {
         <Text style={{ color: colors.success }}>67% of budget used • 18 days left</Text>
       </View>
 
-      {/* Upload Button */}
-      <TouchableOpacity 
+      <TouchableOpacity
         onPress={handleUploadStatement}
         style={{
           backgroundColor: colors.accent,
@@ -103,14 +79,13 @@ export default function BudgetScreen() {
           marginBottom: spacing.xxl,
         }}
       >
-        <Text style={{ color: 'white', fontWeight: '600', fontSize: 16 }}>
+        <Text style={{ color: '#000', fontWeight: '600', fontSize: 16 }}>
           📤 Upload Bank / Credit Card Statement (CSV)
         </Text>
       </TouchableOpacity>
 
-      {/* Categories */}
       {budgetData.map((group, gIndex) => (
-        <View 
+        <View
           key={gIndex}
           style={{
             backgroundColor: colors.surface,
@@ -126,7 +101,7 @@ export default function BudgetScreen() {
           </Text>
 
           {group.items.map((item, iIndex) => (
-            <View 
+            <View
               key={iIndex}
               style={{
                 flexDirection: 'row',
@@ -138,7 +113,6 @@ export default function BudgetScreen() {
               }}
             >
               <Text style={{ fontSize: 16, color: colors.text }}>{item.name}</Text>
-              
               <View style={{ alignItems: 'flex-end' }}>
                 <Text style={{ fontWeight: '600', color: colors.text }}>
                   ${item.budgeted}
@@ -157,6 +131,7 @@ export default function BudgetScreen() {
         borderRadius: radius.lg,
         padding: spacing.xl,
         alignItems: 'center',
+        marginBottom: spacing.xxl,
       }}>
         <Text style={{ color: colors.accent, fontSize: 16, fontWeight: '600' }}>
           + Add Custom Category
