@@ -1,5 +1,5 @@
 import { PropsWithChildren } from 'react';
-import { Platform, ScrollView, StyleProp, StyleSheet, View, ViewStyle, useWindowDimensions } from 'react-native';
+import { Platform, ScrollView, StyleProp, StyleSheet, ViewStyle, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useWealthTheme } from '@/theme/ThemeProvider';
 
@@ -17,8 +17,9 @@ export function Screen({ children, contentContainerStyle }: Props) {
     isWeb
       ? ({
           background: `
-            radial-gradient(ellipse 80% 60% at 20% 30%, rgba(22, 163, 74, 0.08) 0%, transparent 60%),
-            radial-gradient(ellipse 60% 50% at 80% 70%, rgba(212, 175, 55, 0.06) 0%, transparent 55%),
+            radial-gradient(ellipse 90% 70% at 15% 20%, rgba(16, 120, 60, 0.18) 0%, transparent 55%),
+            radial-gradient(ellipse 70% 60% at 85% 75%, rgba(212, 175, 55, 0.12) 0%, transparent 50%),
+            radial-gradient(ellipse 50% 40% at 50% 50%, rgba(34, 197, 94, 0.06) 0%, transparent 60%),
             ${colors.background}
           `,
         } as any)
