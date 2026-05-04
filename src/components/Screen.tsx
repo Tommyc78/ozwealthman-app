@@ -13,22 +13,13 @@ export function Screen({ children, contentContainerStyle }: Props) {
   const isWeb = Platform.OS === 'web';
   const isWideWeb = isWeb && width >= 900;
 
-  const gradientStyle =
-    isWeb
-      ? ({
-          background: `
-            radial-gradient(ellipse 90% 70% at 15% 20%, rgba(16, 120, 60, 0.18) 0%, transparent 55%),
-            radial-gradient(ellipse 70% 60% at 85% 75%, rgba(212, 175, 55, 0.12) 0%, transparent 50%),
-            radial-gradient(ellipse 50% 40% at 50% 50%, rgba(34, 197, 94, 0.06) 0%, transparent 60%),
-            ${colors.background}
-          `,
-        } as any)
-      : { backgroundColor: colors.background };
-
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]} edges={isWeb ? [] : ['top']}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: isWeb ? 'transparent' : colors.background }]}
+      edges={isWeb ? [] : ['top']}
+    >
       <ScrollView
-        style={gradientStyle}
+        style={{ backgroundColor: 'transparent' }}
         contentContainerStyle={[
           styles.content,
           {
