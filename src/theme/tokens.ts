@@ -1,42 +1,43 @@
-// src/theme/tokens.ts
+// OzWealthMan — Translucent Green & Gold / Futuristic Glass
+
 export const lightColors = {
-  background: '#F8FAFC',     // Clean cool white
-  surface: 'rgba(255, 255, 255, 0.92)',        // Glassmorphic
-  surfaceRaised: 'rgba(255, 255, 255, 0.98)',
-  text: '#0F172A',
-  textSubtle: '#64748B',
-  muted: '#94A3B8',
-  border: 'rgba(148, 163, 184, 0.25)',
-  accent: '#0A84FF',         // Modern blue
-  accentStrong: '#0066CC',
-  success: '#22C55E',
-  warning: '#F59E0B',
-  danger: '#EF4444',
-  chartOne: '#0EA5E9',
-  chartTwo: '#22C55E',
-  chartThree: '#A855F7',
-  chartFour: '#F59E0B',
-  chartFive: '#EC4899',
+  background: '#EFF5F1',
+  surface: 'rgba(255, 255, 255, 0.55)',
+  surfaceRaised: 'rgba(255, 255, 255, 0.78)',
+  text: '#0A1F15',
+  textSubtle: '#4A6A58',
+  muted: '#7A9A8A',
+  border: 'rgba(160, 145, 60, 0.18)',
+  accent: '#B8941E',
+  accentStrong: '#9A7B15',
+  success: '#16A34A',
+  warning: '#D97706',
+  danger: '#DC2626',
+  chartOne: '#16A34A',
+  chartTwo: '#B8941E',
+  chartThree: '#0D9488',
+  chartFour: '#D97706',
+  chartFive: '#7C3AED',
 };
 
 export const darkColors = {
-  background: '#0A0F1C',
-  surface: 'rgba(15, 23, 42, 0.85)',
-  surfaceRaised: 'rgba(30, 41, 59, 0.9)',
-  text: '#F1F5F9',
-  textSubtle: '#CBD5E1',
-  muted: '#64748B',
-  border: 'rgba(148, 163, 184, 0.2)',
-  accent: '#60A5FA',
-  accentStrong: '#3B82F6',
-  success: '#4ADE80',
+  background: '#060F0B',
+  surface: 'rgba(12, 32, 22, 0.55)',
+  surfaceRaised: 'rgba(18, 45, 30, 0.68)',
+  text: '#E4EDE8',
+  textSubtle: '#8FAA9A',
+  muted: '#5A7A6A',
+  border: 'rgba(212, 175, 55, 0.16)',
+  accent: '#D4AF37',
+  accentStrong: '#F0C75E',
+  success: '#34D399',
   warning: '#FBBF24',
   danger: '#F87171',
-  chartOne: '#38BDF8',
-  chartTwo: '#4ADE80',
-  chartThree: '#C084FC',
+  chartOne: '#34D399',
+  chartTwo: '#D4AF37',
+  chartThree: '#2DD4BF',
   chartFour: '#FBBF24',
-  chartFive: '#FB7185',
+  chartFive: '#A78BFA',
 };
 
 export const spacing = {
@@ -52,7 +53,7 @@ export const spacing = {
 export const radius = {
   sm: 12,
   md: 16,
-  lg: 20,          // Softer modern corners
+  lg: 24,
 };
 
 export const typography = {
