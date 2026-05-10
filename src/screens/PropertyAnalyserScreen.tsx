@@ -7,7 +7,8 @@ import { Screen } from '@/components/Screen';
 import { SectionHeader } from '@/components/SectionHeader';
 import { Text } from '@/components/Text';
 import { demoData } from '@/data/seed';
-import { analyseProperty, createPropertyResearchBrief } from '@/services/propertyServices';
+import { buildAreaIntelligenceResult } from '@/services/areaIntelligenceService';
+import { analyseProperty } from '@/services/propertyServices';
 import { useWealthTheme } from '@/theme/ThemeProvider';
 import { PropertyAnalysisInput } from '@/types/models';
 import { formatCurrency, formatPercent } from '@/utils/format';
@@ -57,7 +58,7 @@ export function PropertyAnalyserScreen() {
     [input, otherExpenses],
   );
   const analysis = useMemo(() => analyseProperty(adjustedInput), [adjustedInput]);
-  const research = useMemo(() => createPropertyResearchBrief(input.suburb, input.state), [input.suburb, input.state]);
+  const areaIntelligence = useMemo(() => buildAreaIntelligenceResult(input), [input]);
   const gearing = useMemo(() => {
     const depreciation = Number(taxSettings.annualDepreciation) || 0;
     const taxRate = (Number(taxSettings.marginalRate) || 0) / 100;
@@ -381,19 +382,107 @@ export function PropertyAnalyserScreen() {
       </Panel>
 
       <SectionHeader title="Area intelligence" />
-      <Panel>
-        <Text weight="800">
-          {input.suburb}, {input.state}
+      <Panel style={styles.areaPanel}>
+        <View style={styles.areaHeader}>
+          <View style={styles.areaHeaderCopy}>
+            <Text weight="800">
+              {input.suburb}, {input.state}
+            </Text>
+            <Text subtle>{areaIntelligence.aiSummary}</Text>
+          </View>
+          <View style={[styles.areaBadge, { borderColor: colors.accent, backgroundColor: colors.surfaceRaised }]}>
+            <Text variant="small" subtle weight="800">
+              OVERALL
+            </Text>
+            <Text variant="section" style={{ color: colors.accentStrong }}>
+              {areaIntelligence.report.overall_score}/100
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.areaGrid}>
+          <ScorePill label="Verdict" value={areaIntelligence.verdict} color={colors.success} />
+          <ScorePill label="Confidence" value={areaIntelligence.confidenceLabel} color={colors.accentStrong} />
+        </View>
+
+        <View style={styles.areaMetricGrid}>
+          <InlineMetric label="Yield" value={formatPercent(areaIntelligence.report.rental_yield_percent)} color={colors.chartTwo} />
+          <InlineMetric label="Vacancy" value={formatPercent(areaIntelligence.report.vacancy_rate_percent)} color={areaIntelligence.report.vacancy_rate_percent <= 2.5 ? colors.success : colors.warning} />
+          <InlineMetric label="Median rent" value={formatCurrency(areaIntelligence.report.median_weekly_rent)} color={colors.text} />
+          <InlineMetric label="DOM" value={`${areaIntelligence.report.days_on_market} days`} color={colors.warning} />
+        </View>
+
+        <View style={styles.signalList}>
+          {areaIntelligence.scoreSignals.map((signal) => (
+            <Text key={signal} variant="small" subtle>
+              - {signal}
+            </Text>
+          ))}
+        </View>
+
+        <MetricRow label="1 year growth" value={formatPercent(areaIntelligence.report.annual_growth_1y)} />
+        <MetricRow label="3 year growth" value={formatPercent(areaIntelligence.report.annual_growth_3y)} />
+        <MetricRow label="5 year growth" value={formatPercent(areaIntelligence.report.annual_growth_5y)} />
+        <MetricRow label="10 year growth" value={formatPercent(areaIntelligence.report.annual_growth_10y)} />
+        <MetricRow
+          label="Comparable yield range"
+          value={`${formatPercent(areaIntelligence.report.comparable_yield_range.low)} - ${formatPercent(areaIntelligence.report.comparable_yield_range.high)}`}
+        />
+        <MetricRow label="Population growth" value={formatPercent(areaIntelligence.report.population_growth_percent)} />
+        <MetricRow label="Household growth" value={formatPercent(areaIntelligence.report.household_growth_percent)} />
+
+        <View style={styles.reasonGrid}>
+          <View style={styles.reasonColumn}>
+            <Text variant="label" subtle>
+              WHAT HELPS
+            </Text>
+            {areaIntelligence.report.strengths.map((item) => (
+              <Text key={item} variant="small" style={{ color: colors.success }}>
+                {item}
+              </Text>
+            ))}
+          </View>
+          <View style={styles.reasonColumn}>
+            <Text variant="label" subtle>
+              WHAT TO WATCH
+            </Text>
+            {areaIntelligence.report.risks.map((item) => (
+              <Text key={item} variant="small" style={{ color: colors.warning }}>
+                {item}
+              </Text>
+            ))}
+          </View>
+        </View>
+
+        <Text variant="label" subtle>
+          UPCOMING PROJECTS
         </Text>
-        <Text subtle>{research.summary}</Text>
-        <MetricRow label="Rental yield comparisons" value="Provider ready" />
-        <Text variant="small" subtle>{research.rentalYieldComparison}</Text>
-        <MetricRow label="History of growth" value="Provider ready" />
-        <Text variant="small" subtle>{research.growthHistory}</Text>
-        <MetricRow label="Upcoming projects" value="Provider ready" />
-        <Text variant="small" subtle>{research.projectPipeline}</Text>
-        <MetricRow label="People movement" value="Provider ready" />
-        <Text variant="small" subtle>{research.populationMovement}</Text>
+        <View style={styles.projectList}>
+          {areaIntelligence.report.projects.map((project) => (
+            <View key={project.title} style={[styles.projectCard, { borderColor: colors.border, backgroundColor: colors.surfaceRaised }]}>
+              <View style={styles.projectHeader}>
+                <Text weight="800">{project.title}</Text>
+                <Text variant="small" subtle>
+                  {project.stage.replace('_', ' ')} - {project.impact} impact
+                </Text>
+              </View>
+              <Text variant="small" subtle>
+                {project.summary}
+              </Text>
+            </View>
+          ))}
+        </View>
+
+        <Text variant="label" subtle>
+          SOURCES
+        </Text>
+        <View style={styles.signalList}>
+          {areaIntelligence.report.citations.map((citation) => (
+            <Text key={citation} variant="small" subtle>
+              - {citation}
+            </Text>
+          ))}
+        </View>
       </Panel>
     </Screen>
   );
@@ -485,6 +574,16 @@ const styles = StyleSheet.create({
   inputRow: { gap: 7 },
   input: { borderRadius: 8, borderWidth: 1, minHeight: 42, paddingHorizontal: 12 },
   otherPanel: { gap: 12 },
+  areaPanel: { gap: 12 },
+  areaHeader: { flexDirection: 'row', gap: 12 },
+  areaHeaderCopy: { flex: 1, gap: 6 },
+  areaBadge: { borderRadius: 8, borderWidth: 1, gap: 4, minWidth: 104, padding: 12 },
+  areaGrid: { flexDirection: 'row', gap: 12 },
+  areaMetricGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  projectList: { gap: 10 },
+  projectCard: { borderRadius: 8, borderWidth: 1, gap: 6, padding: 12 },
+  projectHeader: { gap: 3 },
+  signalList: { gap: 6 },
   otherInputRow: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   otherInput: { flex: 1, minWidth: 220 },
   otherAmount: { width: 160 },

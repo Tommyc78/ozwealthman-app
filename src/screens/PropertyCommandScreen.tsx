@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Dimensions, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { LineChart } from 'react-native-chart-kit';
 import { MetricRow } from '@/components/MetricRow';
 import { Panel } from '@/components/Panel';
 import { PrimaryButton } from '@/components/PrimaryButton';
@@ -9,7 +10,7 @@ import { Screen } from '@/components/Screen';
 import { SectionHeader } from '@/components/SectionHeader';
 import { Text } from '@/components/Text';
 import { useAppData } from '@/data/AppDataProvider';
-import { getPropertyBillSummary, getPropertyDetail } from '@/services/propertyServices';
+import { getPropertyBillSummary, getPropertyDetail, getPropertyPortfolioLoanSnapshot } from '@/services/propertyServices';
 import { useWealthTheme } from '@/theme/ThemeProvider';
 import { PropertyBill, PropertyBillType } from '@/types/models';
 import { formatCurrency } from '@/utils/format';
@@ -56,6 +57,15 @@ export function PropertyCommandScreen() {
   }, [data.propertyHoldings]);
 
   const allBills = getPropertyBillSummary(undefined, data);
+  const loanSnapshot = useMemo(() => getPropertyPortfolioLoanSnapshot(data), [data]);
+  const chartWidth = Math.max(Math.min(Dimensions.get('window').width - 96, 1040), 300);
+  const debtMixMax = Math.max(...data.propertyHoldings.map((property) => property.current_value), 1);
+  const payoffLabels = loanSnapshot.balanceSchedule.points.map((point) => String(point.year));
+  const payoffBalances = loanSnapshot.balanceSchedule.points.map((point) => point.balance);
+  const interestPrincipalLabels = loanSnapshot.interestPrincipalSchedule.slice(0, 6).map((point) => `Y${point.year}`);
+  const interestSeries = loanSnapshot.interestPrincipalSchedule.slice(0, 6).map((point) => point.interestPaid);
+  const principalSeries = loanSnapshot.interestPrincipalSchedule.slice(0, 6).map((point) => point.principalPaid);
+
   const visibleBills = useMemo(() => {
     const monthRanges: Record<typeof billPeriod, number[]> = {
       all: [],
@@ -126,7 +136,112 @@ export function PropertyCommandScreen() {
           <InlineMetric label="Debt" value={formatCurrency(portfolio.totalDebt)} color={colors.danger} />
           <InlineMetric label="LVR" value={`${portfolio.lvr.toFixed(1)}%`} color={portfolio.lvr > 80 ? colors.danger : colors.warning} />
           <InlineMetric label="Avg Rate" value={`${portfolio.avgRate.toFixed(2)}%`} color={colors.accentStrong} />
-          <InlineMetric label="Repayments" value={formatCurrency(portfolio.totalRepayments)} color={colors.text} />
+          <InlineMetric label="Repayments / month" value={formatCurrency(portfolio.totalRepayments)} color={colors.text} />
+        </View>
+      </Panel>
+
+      <SectionHeader title="Debt vs equity" action="Portfolio mix by property" />
+      <Panel style={styles.formPanel}>
+        <Text subtle>See how much of each property is owned versus still funded by debt. This gives a fast read on concentration and leverage.</Text>
+        <View style={styles.debtMixStack}>
+          {data.propertyHoldings.map((property) => {
+            const equity = Math.max(property.current_value - property.loan_balance, 0);
+            const debtFlex = Math.max((property.loan_balance / debtMixMax) * 100, 8);
+            const equityFlex = Math.max((equity / debtMixMax) * 100, 8);
+
+            return (
+              <View key={property.id} style={styles.debtMixRow}>
+                <View style={styles.debtMixHeader}>
+                  <Text weight="800">{property.name}</Text>
+                  <Text variant="small" subtle>
+                    {property.ownership_type === 'smsf' ? 'SMSF' : 'Personal'}
+                  </Text>
+                </View>
+                <View style={[styles.debtMixTrack, { backgroundColor: colors.border }]}>
+                  <View style={[styles.debtMixFill, { flex: debtFlex, backgroundColor: colors.danger }]} />
+                  <View style={[styles.debtMixFill, { flex: equityFlex, backgroundColor: colors.success }]} />
+                </View>
+                <View style={styles.debtMixFooter}>
+                  <Text variant="small" subtle>
+                    Debt {formatCurrency(property.loan_balance)}
+                  </Text>
+                  <Text variant="small" subtle>
+                    Equity {formatCurrency(equity)}
+                  </Text>
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      </Panel>
+
+      <SectionHeader title="Payoff graph" action={`${loanSnapshot.weightedAverageRate.toFixed(2)}% weighted rate`} />
+      <Panel style={styles.formPanel}>
+        <View style={styles.heroMetrics}>
+          <InlineMetric label="Debt today" value={formatCurrency(portfolio.totalDebt)} color={colors.danger} />
+          <InlineMetric label="Principal year 1" value={formatCurrency(loanSnapshot.totalAnnualPrincipalYearOne)} color={colors.success} />
+          <InlineMetric label="Interest year 1" value={formatCurrency(loanSnapshot.totalAnnualInterestYearOne)} color={colors.warning} />
+          <InlineMetric
+            label="Payoff term"
+            value={loanSnapshot.balanceSchedule.totalMonths >= 999 ? 'Review repayment' : `${Math.ceil(loanSnapshot.balanceSchedule.totalMonths / 12)} yrs`}
+            color={colors.text}
+          />
+        </View>
+        <View style={styles.chartWrap}>
+          <LineChart
+            data={{
+              labels: payoffLabels,
+              datasets: [{ data: payoffBalances, color: () => colors.accentStrong, strokeWidth: 3 }],
+              legend: ['Portfolio debt balance'],
+            }}
+            width={chartWidth}
+            height={240}
+            yAxisLabel="$"
+            chartConfig={{
+              backgroundGradientFrom: colors.surface,
+              backgroundGradientTo: colors.surface,
+              color: () => colors.textSubtle,
+              decimalPlaces: 0,
+              labelColor: () => colors.textSubtle,
+              propsForBackgroundLines: { stroke: colors.border, strokeDasharray: '6 8' },
+              propsForDots: { r: '4', strokeWidth: '2', stroke: colors.surface },
+            }}
+            bezier
+            style={styles.chart}
+          />
+        </View>
+      </Panel>
+
+      <SectionHeader title="Interest vs principal" action="First six years at current repayment" />
+      <Panel style={styles.formPanel}>
+        <Text subtle>
+          This is the part people usually miss. Early on, interest does most of the work. As the loan seasons, principal starts taking over.
+        </Text>
+        <View style={styles.chartWrap}>
+          <LineChart
+            data={{
+              labels: interestPrincipalLabels.length > 0 ? interestPrincipalLabels : ['Y1'],
+              datasets: [
+                { data: interestSeries.length > 0 ? interestSeries : [0], color: () => colors.warning, strokeWidth: 3 },
+                { data: principalSeries.length > 0 ? principalSeries : [0], color: () => colors.success, strokeWidth: 3 },
+              ],
+              legend: ['Interest paid', 'Principal paid'],
+            }}
+            width={chartWidth}
+            height={220}
+            yAxisLabel="$"
+            chartConfig={{
+              backgroundGradientFrom: colors.surface,
+              backgroundGradientTo: colors.surface,
+              color: () => colors.textSubtle,
+              decimalPlaces: 0,
+              labelColor: () => colors.textSubtle,
+              propsForBackgroundLines: { stroke: colors.border, strokeDasharray: '6 8' },
+              propsForDots: { r: '3', strokeWidth: '2', stroke: colors.surface },
+            }}
+            bezier
+            style={styles.chart}
+          />
         </View>
       </Panel>
 
@@ -176,7 +291,7 @@ export function PropertyCommandScreen() {
 
               <View style={styles.propertyMetrics}>
                 <InlineMetric label="Rate" value={`${property.interest_rate.toFixed(2)}%`} color={colors.warning} />
-                <InlineMetric label="Repayment" value={formatCurrency(property.monthly_repayment)} color={colors.text} />
+                <InlineMetric label="Repayment / month" value={formatCurrency(property.monthly_repayment)} color={colors.text} />
                 <InlineMetric
                   label="LVR"
                   value={`${(detail?.debtRatio ?? 0).toFixed(1)}%`}
@@ -353,6 +468,14 @@ const styles = StyleSheet.create({
   trustRow: { borderTopWidth: StyleSheet.hairlineWidth, gap: 4, paddingTop: 12 },
   iconBox: { alignItems: 'center', borderRadius: 8, height: 34, justifyContent: 'center', width: 34 },
   formPanel: { gap: 12 },
+  debtMixStack: { gap: 12 },
+  debtMixRow: { gap: 6 },
+  debtMixHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
+  debtMixTrack: { borderRadius: 6, flexDirection: 'row', height: 12, overflow: 'hidden' },
+  debtMixFill: { height: '100%' },
+  debtMixFooter: { flexDirection: 'row', justifyContent: 'space-between' },
+  chartWrap: { alignItems: 'flex-start', marginLeft: -16, overflow: 'hidden' },
+  chart: { borderRadius: 8 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: { borderRadius: 8, borderWidth: 1, paddingHorizontal: 11, paddingVertical: 8 },
   billRow: { alignItems: 'center', borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', gap: 12, paddingVertical: 12 },

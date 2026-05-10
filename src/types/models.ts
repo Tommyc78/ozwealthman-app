@@ -107,6 +107,46 @@ export type PropertyProjection = {
   research_sources: string[];
 };
 
+export type AreaIntelligenceProject = {
+  title: string;
+  stage: 'planned' | 'funded' | 'under_construction' | 'approved';
+  impact: 'low' | 'medium' | 'high';
+  summary: string;
+};
+
+export type AreaIntelligenceReport = {
+  id: string;
+  suburb: string;
+  state: string;
+  postcode?: string;
+  property_type: 'house' | 'unit' | 'mixed';
+  status: 'not_connected' | 'mock_live' | 'provider_ready';
+  generated_at: string;
+  confidence_score: number;
+  overall_score: number;
+  yield_score: number;
+  growth_score: number;
+  demand_score: number;
+  supply_risk_score: number;
+  infrastructure_score: number;
+  rental_yield_percent: number;
+  vacancy_rate_percent: number;
+  median_weekly_rent: number;
+  annual_growth_1y: number;
+  annual_growth_3y: number;
+  annual_growth_5y: number;
+  annual_growth_10y: number;
+  population_growth_percent: number;
+  household_growth_percent: number;
+  days_on_market: number;
+  comparable_yield_range: { low: number; high: number };
+  summary: string;
+  strengths: string[];
+  risks: string[];
+  projects: AreaIntelligenceProject[];
+  citations: string[];
+};
+
 export type PropertyAnalysisInput = {
   id: string;
   user_id: string;
@@ -251,6 +291,7 @@ export type DemoData = {
   propertyHoldings: PropertyHolding[];
   propertyBills: PropertyBill[];
   propertyProjections: PropertyProjection[];
+  areaIntelligenceReports: AreaIntelligenceReport[];
   propertyAnalysisInputs: PropertyAnalysisInput[];
   taxTrackerItems: TaxTrackerItem[];
   smsfComplianceChecklist: SMSFComplianceChecklistItem[];

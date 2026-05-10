@@ -36,6 +36,28 @@ export type PropertyBusinessProjection = {
   signals: string[];
 };
 
+export type AmortizationPoint = {
+  year: number;
+  balance: number;
+  principalPaid: number;
+  interestPaid: number;
+};
+
+export type AmortizationSchedule = {
+  points: AmortizationPoint[];
+  totalMonths: number;
+  totalInterest: number;
+};
+
+export type PropertyPortfolioLoanSnapshot = {
+  balanceSchedule: AmortizationSchedule;
+  interestPrincipalSchedule: AmortizationPoint[];
+  totalMonthlyRepayments: number;
+  totalAnnualInterestYearOne: number;
+  totalAnnualPrincipalYearOne: number;
+  weightedAverageRate: number;
+};
+
 export function getPropertyBills(propertyId?: string, data: DemoData = demoData) {
   return data.propertyBills
     .filter((bill) => (propertyId ? bill.property_id === propertyId : true))
@@ -61,6 +83,58 @@ export function getPropertyBillSummary(propertyId?: string, data: DemoData = dem
 function annualizeBill(bill: PropertyBill) {
   const multiplier = bill.recurrence === 'monthly' ? 12 : bill.recurrence === 'quarterly' ? 4 : 1;
   return bill.amount * multiplier;
+}
+
+export function calculateAmortizationSchedule(
+  balance: number,
+  annualRate: number,
+  monthlyPayment: number,
+  extraMonthly = 0,
+): AmortizationSchedule {
+  const monthlyRate = annualRate / 100 / 12;
+  const totalPayment = monthlyPayment + extraMonthly;
+
+  if (balance <= 0 || totalPayment <= 0 || totalPayment <= balance * monthlyRate) {
+    return {
+      points: [{ year: 0, balance: Math.max(balance, 0), principalPaid: 0, interestPaid: 0 }],
+      totalMonths: 999,
+      totalInterest: 0,
+    };
+  }
+
+  const points: AmortizationPoint[] = [{ year: 0, balance, principalPaid: 0, interestPaid: 0 }];
+  let remaining = balance;
+  let month = 0;
+  let totalInterest = 0;
+  let interestYear = 0;
+  let principalYear = 0;
+
+  while (remaining > 0 && month < 480) {
+    const interest = remaining * monthlyRate;
+    const principal = Math.max(totalPayment - interest, 0);
+    totalInterest += interest;
+    interestYear += interest;
+    principalYear += principal;
+    remaining = remaining + interest - totalPayment;
+    if (remaining < 0) {
+      principalYear += remaining;
+      remaining = 0;
+    }
+    month += 1;
+
+    if (month % 12 === 0 || remaining === 0) {
+      points.push({
+        year: Math.ceil(month / 12),
+        balance: Math.round(remaining),
+        principalPaid: Math.round(principalYear),
+        interestPaid: Math.round(interestYear),
+      });
+      interestYear = 0;
+      principalYear = 0;
+    }
+  }
+
+  return { points, totalMonths: month, totalInterest: Math.round(totalInterest) };
 }
 
 export function createPropertyProjection(property: PropertyHolding, data: DemoData = demoData): PropertyProjectionPoint[] {
@@ -100,6 +174,32 @@ export function getPropertyDetail(propertyId: string, data: DemoData = demoData)
     annualRent,
     netOperatingIncome,
     grossYield: property.current_value > 0 ? (annualRent / property.current_value) * 100 : 0,
+  };
+}
+
+export function getPropertyPortfolioLoanSnapshot(data: DemoData = demoData): PropertyPortfolioLoanSnapshot {
+  const propertiesWithDebt = data.propertyHoldings.filter(
+    (property) => property.loan_balance > 0 && property.monthly_repayment > 0 && property.interest_rate > 0,
+  );
+
+  const totalDebt = propertiesWithDebt.reduce((sum, property) => sum + property.loan_balance, 0);
+  const totalMonthlyRepayments = propertiesWithDebt.reduce((sum, property) => sum + property.monthly_repayment, 0);
+  const weightedAverageRate =
+    totalDebt > 0
+      ? propertiesWithDebt.reduce((sum, property) => sum + property.interest_rate * property.loan_balance, 0) / totalDebt
+      : 0;
+
+  const balanceSchedule = calculateAmortizationSchedule(totalDebt, weightedAverageRate, totalMonthlyRepayments);
+  const interestPrincipalSchedule = balanceSchedule.points.slice(1);
+  const yearOne = interestPrincipalSchedule[0] ?? { interestPaid: 0, principalPaid: 0 };
+
+  return {
+    balanceSchedule,
+    interestPrincipalSchedule,
+    totalMonthlyRepayments,
+    totalAnnualInterestYearOne: yearOne.interestPaid,
+    totalAnnualPrincipalYearOne: yearOne.principalPaid,
+    weightedAverageRate,
   };
 }
 

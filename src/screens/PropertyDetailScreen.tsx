@@ -9,43 +9,15 @@ import { Screen } from '@/components/Screen';
 import { SectionHeader } from '@/components/SectionHeader';
 import { Text } from '@/components/Text';
 import { useAppData } from '@/data/AppDataProvider';
-import { createPropertyBusinessProjection, getPropertyBillSummary, getPropertyDetail } from '@/services/propertyServices';
+import {
+  calculateAmortizationSchedule,
+  createPropertyBusinessProjection,
+  getPropertyBillSummary,
+  getPropertyDetail,
+} from '@/services/propertyServices';
 import { useWealthTheme } from '@/theme/ThemeProvider';
 import { PropertyBill, PropertyBillType } from '@/types/models';
 import { formatCurrency } from '@/utils/format';
-
-function calculateAmortization(balance: number, annualRate: number, monthlyPayment: number, extraMonthly = 0) {
-  const monthlyRate = annualRate / 100 / 12;
-  const totalPayment = monthlyPayment + extraMonthly;
-
-  if (totalPayment <= balance * monthlyRate) {
-    return { points: [{ year: 0, balance }], totalMonths: 999, totalInterest: 0 };
-  }
-
-  const points: { year: number; balance: number }[] = [{ year: 0, balance }];
-  let remaining = balance;
-  let month = 0;
-  let totalInterest = 0;
-
-  while (remaining > 0 && month < 480) {
-    const interest = remaining * monthlyRate;
-    totalInterest += interest;
-    remaining = remaining + interest - totalPayment;
-    if (remaining < 0) {
-      remaining = 0;
-    }
-    month += 1;
-    if (month % 12 === 0) {
-      points.push({ year: month / 12, balance: Math.round(remaining) });
-    }
-  }
-
-  if (month % 12 !== 0) {
-    points.push({ year: Math.ceil(month / 12), balance: 0 });
-  }
-
-  return { points, totalMonths: month, totalInterest: Math.round(totalInterest) };
-}
 
 export function PropertyDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -98,9 +70,12 @@ export function PropertyDetailScreen() {
   const debtRatio = currentValue > 0 ? (currentLoan / currentValue) * 100 : 0;
   const grossYield = currentValue > 0 ? ((currentRent * 52) / currentValue) * 100 : 0;
 
-  const standard = useMemo(() => calculateAmortization(currentLoan, currentRate, currentRepayment), [currentLoan, currentRate, currentRepayment]);
+  const standard = useMemo(
+    () => calculateAmortizationSchedule(currentLoan, currentRate, currentRepayment),
+    [currentLoan, currentRate, currentRepayment],
+  );
   const accelerated = useMemo(
-    () => calculateAmortization(currentLoan, currentRate, currentRepayment, extra),
+    () => calculateAmortizationSchedule(currentLoan, currentRate, currentRepayment, extra),
     [currentLoan, currentRate, currentRepayment, extra],
   );
 

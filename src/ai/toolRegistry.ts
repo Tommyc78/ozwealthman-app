@@ -1,5 +1,6 @@
 import { demoData } from '@/data/seed';
 import { getBullionLotById, getDashboardSummary } from '@/services/calculations';
+import { buildAreaIntelligenceResult } from '@/services/areaIntelligenceService';
 import { getDefaultPropertyAnalysis, getPropertyDetail } from '@/services/propertyServices';
 import { getTaxTrackerSummary } from '@/services/taxServices';
 import { AssetType, MetalType, PropertyBillType, UnitType } from '@/types/models';
@@ -27,6 +28,7 @@ export type AssistantToolName =
   | 'addPropertyIncome'
   | 'addPropertyBill'
   | 'getPropertyAnalysis'
+  | 'getAreaIntelligence'
   | 'getTaxTrackerSummary'
   | 'recalculateDashboard';
 
@@ -194,6 +196,24 @@ export const responsesToolDefinitions: ResponsesToolDefinition[] = [
         propertyId: stringSchema('Optional property id for an existing holding. Use demo analyser when blank.'),
       },
       required: ['userId', 'propertyId'],
+    },
+  },
+  {
+    type: 'function',
+    name: 'getAreaIntelligence',
+    description: 'Return structured suburb-level area intelligence and an AI-ready summary for a property deal.',
+    strict: true,
+    parameters: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        userId: stringSchema('The user id to read.'),
+        suburb: stringSchema('The suburb to research.'),
+        state: stringSchema('The Australian state abbreviation.'),
+        propertyType: stringSchema('Optional asset type such as house or unit.'),
+        proposedWeeklyRent: numberSchema('Optional proposed weekly rent for rent comparison.'),
+      },
+      required: ['userId', 'suburb', 'state', 'propertyType', 'proposedWeeklyRent'],
     },
   },
   {
@@ -423,6 +443,16 @@ export async function runAssistantTool(call: AssistantToolCall): Promise<ToolRes
         data: propertyId ? getPropertyDetail(propertyId) ?? getDefaultPropertyAnalysis() : getDefaultPropertyAnalysis(),
       };
     }
+    case 'getAreaIntelligence':
+      return {
+        message: 'Area intelligence returned from stored research data and deterministic comparison logic.',
+        data: buildAreaIntelligenceResult({
+          suburb: requireString(call.arguments, 'suburb'),
+          state: requireString(call.arguments, 'state'),
+          property_type: requireString(call.arguments, 'propertyType'),
+          weekly_rent: requireNumber(call.arguments, 'proposedWeeklyRent'),
+        }),
+      };
     case 'getTaxTrackerSummary':
       return {
         message: 'Tax and SMSF compliance tracker returned from stored data.',
