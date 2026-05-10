@@ -20,7 +20,7 @@ export function TransactionRow({ transaction }: Props) {
           {transaction.asset_name ?? transaction.notes ?? formatDate(transaction.transaction_date)}
         </Text>
       </View>
-      <Text weight="800" style={{ color: isPositive ? colors.success : colors.text }}>
+      <Text weight="800" style={{ color: isPositive ? colors.success : colors.text }} numberOfLines={1} adjustsFontSizeToFit>
         {isPositive ? '+' : '-'}
         {formatCurrency(transaction.amount)}
       </Text>
@@ -30,9 +30,10 @@ export function TransactionRow({ transaction }: Props) {
 
 const styles = StyleSheet.create({
   row: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
+    gap: 12,
     justifyContent: 'space-between',
     paddingVertical: 12,
   },

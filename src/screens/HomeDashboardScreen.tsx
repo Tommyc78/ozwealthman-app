@@ -19,6 +19,7 @@ export function HomeDashboardScreen() {
   const isDesktopWeb = useIsDesktopWeb();
   const { width } = useWindowDimensions();
   const isCompact = width < 430;
+  const isPhone = width < 768;
   const dashboard = getDashboardSummary(data);
   const positiveSurplus = dashboard.monthlySurplus >= 0;
 
@@ -87,7 +88,7 @@ export function HomeDashboardScreen() {
         </View>
       </Panel>
 
-      <Panel style={[styles.startPanel, !isCompact && styles.startPanelWide]}>
+      <Panel style={[styles.startPanel, !isPhone && styles.startPanelWide]}>
         <View style={styles.startCopy}>
           <Text variant="label" subtle>
             START HERE
@@ -98,7 +99,7 @@ export function HomeDashboardScreen() {
             records.
           </Text>
         </View>
-        <View style={styles.startActions}>
+        <View style={[styles.startActions, isPhone && styles.startActionsMobile]}>
           <StartAction icon="add-circle-outline" label="Start setup" onPress={() => router.push('/onboarding')} />
           <StartAction icon="pie-chart-outline" label="Add investment" onPress={() => router.push('/(tabs)/investments')} />
           <StartAction icon="home-outline" label="Add property bill" onPress={() => router.push('/(tabs)/property')} />
@@ -306,12 +307,15 @@ function DashboardTile({
 
 function StartAction({ icon, label, onPress }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void }) {
   const { colors } = useWealthTheme();
+  const { width } = useWindowDimensions();
+  const isPhone = width < 768;
 
   return (
     <Pressable
       onPress={onPress}
       style={({ pressed }) => [
         styles.startAction,
+        isPhone && styles.startActionMobile,
         { backgroundColor: colors.surfaceRaised, borderColor: colors.border, opacity: pressed ? 0.82 : 1 },
       ]}
     >
@@ -540,6 +544,10 @@ const styles = StyleSheet.create({
     gap: 8,
     justifyContent: 'flex-end',
   },
+  startActionsMobile: {
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+  },
   startAction: {
     alignItems: 'center',
     borderRadius: 8,
@@ -548,6 +556,10 @@ const styles = StyleSheet.create({
     gap: 8,
     minHeight: 42,
     paddingHorizontal: 12,
+  },
+  startActionMobile: {
+    justifyContent: 'flex-start',
+    width: '100%',
   },
   metricGrid: {
     flexDirection: 'row',
@@ -653,7 +665,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   insightRow: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     gap: 12,
@@ -674,7 +686,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   drillCard: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: 'row',
@@ -692,6 +704,7 @@ const styles = StyleSheet.create({
   drillCopy: {
     flex: 1,
     gap: 3,
+    minWidth: 0,
   },
   activityPanel: {
     paddingVertical: 8,
