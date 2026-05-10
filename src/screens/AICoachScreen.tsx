@@ -8,7 +8,7 @@ import { PrimaryButton } from '@/components/PrimaryButton';
 import { Screen } from '@/components/Screen';
 import { SectionHeader } from '@/components/SectionHeader';
 import { Text } from '@/components/Text';
-import { demoData } from '@/data/seed';
+import { useAppData } from '@/data/AppDataProvider';
 import { useWealthTheme } from '@/theme/ThemeProvider';
 
 type ChatMessage = {
@@ -27,6 +27,7 @@ const chips = [
 
 export function AICoachScreen() {
   const { colors } = useWealthTheme();
+  const { data, confirmAssistantPendingAction } = useAppData();
   const [input, setInput] = useState('');
   const [providerKey, setProviderKey] = useState<AssistantProviderKey>('oz_local');
   const [pendingAction, setPendingAction] = useState<PendingAction | undefined>();
@@ -53,7 +54,7 @@ export function AICoachScreen() {
     setMessages((current) => [...current, { id: `user-${Date.now()}`, role: 'user', content: trimmed }]);
 
     const result = await createWealthAssistantResponse({
-      userId: demoData.user.id,
+      userId: data.user.id,
       input: trimmed,
     }, providerKey);
 
@@ -74,7 +75,13 @@ export function AICoachScreen() {
   }
 
   function resolvePending(action: PendingAction, mode: 'confirm' | 'cancel') {
-    const result = mode === 'confirm' ? confirmPendingAction(action) : cancelPendingAction(action);
+    const result =
+      mode === 'confirm'
+        ? (() => {
+            confirmPendingAction(action);
+            return confirmAssistantPendingAction(action);
+          })()
+        : cancelPendingAction(action);
     setPendingAction(undefined);
     setMessages((current) => [
       ...current,
@@ -238,6 +245,7 @@ const styles = StyleSheet.create({
   heroTop: {
     alignItems: 'flex-start',
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 12,
     justifyContent: 'space-between',
   },

@@ -136,7 +136,6 @@ export function createPropertyBusinessProjection(propertyId: string, data: DemoD
   const growthRate = projection?.base_growth_rate ?? 0.045;
   const rentGrowthRate = 0.03;
   const costInflationRate = 0.035;
-  const interestRate = 0.062;
   const openingEquity = property.current_value - property.loan_balance;
   const points: PropertyBusinessProjectionPoint[] = [];
   let cumulativeBills = 0;
@@ -147,7 +146,7 @@ export function createPropertyBusinessProjection(propertyId: string, data: DemoD
     const propertyValue = Math.round(property.current_value * (1 + growthRate) ** year);
     const annualRent = property.weekly_rent * WEEKS_PER_YEAR * (1 + rentGrowthRate) ** year;
     const annualBills = (property.annual_expenses + billSummary.annualized) * (1 + costInflationRate) ** year;
-    const annualInterest = property.loan_balance * interestRate;
+    const annualInterest = property.loan_balance * (property.interest_rate / 100);
     const annualOperatingCosts = annualBills + annualInterest;
     const annualNetCashflow = annualRent - annualOperatingCosts;
 

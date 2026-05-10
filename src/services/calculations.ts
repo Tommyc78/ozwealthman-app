@@ -89,7 +89,8 @@ export function getSMSFSummary(data: DemoData = demoData) {
     .reduce((total, holding) => total + holding.current_value, 0);
   const monthlyRent = smsfProperties.reduce((total, property) => total + property.weekly_rent * WEEKS_PER_MONTH, 0);
   const annualExpenses = smsfProperties.reduce((total, property) => total + property.annual_expenses, 0);
-  const monthlyExpenses = annualExpenses / 12 + 4550;
+  const monthlyRepayments = smsfProperties.reduce((total, property) => total + property.monthly_repayment, 0);
+  const monthlyExpenses = annualExpenses / 12 + monthlyRepayments;
   const monthlyCashflow = monthlyRent - monthlyExpenses;
   const totalBalance = propertyValue - loanBalance + cash + bullion + shares + crypto;
 

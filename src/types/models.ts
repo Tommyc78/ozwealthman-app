@@ -74,8 +74,11 @@ export type PropertyHolding = {
   ownership_type: 'personal' | 'smsf';
   current_value: number;
   loan_balance: number;
+  interest_rate: number;
+  monthly_repayment: number;
   weekly_rent: number;
   annual_expenses: number;
+  bare_trust_name?: string;
   notes?: string;
 };
 
@@ -174,6 +177,28 @@ export type SuperHolding = {
   contribution_frequency: ContributionFrequency;
 };
 
+export type SuperContributionDraft = {
+  label: string;
+  amount: number;
+  frequency: string;
+  date: string;
+};
+
+export type SuperSettings = {
+  current_age: number;
+  retirement_age: number;
+  return_rate: number;
+  employer_contribution: number;
+  salary_sacrifice: number;
+  tpd_cover: number;
+  tpd_premium: number;
+  income_protection_cover: number;
+  ip_premium: number;
+  ip_waiting_period: number;
+  ip_benefit_period: string;
+  extra_contributions: SuperContributionDraft[];
+};
+
 export type ShareHolding = {
   id: string;
   user_id: string;
@@ -230,6 +255,7 @@ export type DemoData = {
   taxTrackerItems: TaxTrackerItem[];
   smsfComplianceChecklist: SMSFComplianceChecklistItem[];
   superHoldings: SuperHolding[];
+  superSettings: SuperSettings;
   shareHoldings: ShareHolding[];
   cryptoHoldings: CryptoHolding[];
   bullionLots: BullionLot[];

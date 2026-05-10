@@ -1,23 +1,24 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
+import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { Panel } from '@/components/Panel';
 import { Screen } from '@/components/Screen';
 import { SectionHeader } from '@/components/SectionHeader';
 import { Text } from '@/components/Text';
 import { TransactionRow } from '@/components/TransactionRow';
 import { useAppData } from '@/data/AppDataProvider';
-import { AllocationItem } from '@/services/calculations';
-import { getDashboardSummary } from '@/services/calculations';
 import { useIsDesktopWeb } from '@/platform/useIsDesktopWeb';
-import { WealthColors } from '@/theme/tokens';
+import { AllocationItem, getDashboardSummary } from '@/services/calculations';
 import { useWealthTheme } from '@/theme/ThemeProvider';
+import { WealthColors } from '@/theme/tokens';
 import { formatCurrency, formatPercent } from '@/utils/format';
 
 export function HomeDashboardScreen() {
   const { colors } = useWealthTheme();
   const { data, lastRefreshedAt, refreshDashboard } = useAppData();
   const isDesktopWeb = useIsDesktopWeb();
+  const { width } = useWindowDimensions();
+  const isCompact = width < 430;
   const dashboard = getDashboardSummary(data);
   const positiveSurplus = dashboard.monthlySurplus >= 0;
 
@@ -36,7 +37,10 @@ export function HomeDashboardScreen() {
           </Text>
           <Text subtle>Your full wealth position, in one disciplined view.</Text>
         </View>
-        <Pressable style={[styles.askButton, { backgroundColor: `${colors.accent}20`, borderColor: colors.accent }]} onPress={() => router.push('/(tabs)/ai')}>
+        <Pressable
+          style={[styles.askButton, { backgroundColor: `${colors.accent}20`, borderColor: colors.accent }]}
+          onPress={() => router.push('/(tabs)/ai')}
+        >
           <Ionicons name="chatbubble-ellipses-outline" color={colors.accentStrong} size={22} />
         </Pressable>
       </View>
@@ -47,7 +51,7 @@ export function HomeDashboardScreen() {
           <View style={[styles.heroGlowSecondary, { backgroundColor: `${colors.chartFive}18` }]} />
           <View style={[styles.heroLine, { backgroundColor: `${colors.chartFive}55` }]} />
         </View>
-        <View style={styles.heroTopRow}>
+        <View style={[styles.heroTopRow, isCompact && styles.heroTopRowCompact]}>
           <View>
             <Text variant="label" subtle>
               TOTAL NET WORTH
@@ -56,7 +60,13 @@ export function HomeDashboardScreen() {
               {formatCurrency(dashboard.netWorth)}
             </Text>
           </View>
-          <View style={[styles.statusPill, { borderColor: colors.border, backgroundColor: colors.surface }]}>
+          <View
+            style={[
+              styles.statusPill,
+              isCompact && styles.statusPillCompact,
+              { borderColor: colors.border, backgroundColor: colors.surface },
+            ]}
+          >
             <View style={[styles.liveDot, { backgroundColor: colors.success }]} />
             <Text variant="small" weight="800">
               Refreshed {lastRefreshedAt.slice(11, 16)}
@@ -67,19 +77,26 @@ export function HomeDashboardScreen() {
           {dashboard.aiSummary}
         </Text>
         <View style={[styles.heroDivider, { backgroundColor: colors.border }]} />
-        <View style={styles.heroBottomRow}>
-          <InlineMetric label="Monthly surplus" value={formatCurrency(dashboard.monthlySurplus)} color={positiveSurplus ? colors.success : colors.danger} />
+        <View style={[styles.heroBottomRow, isCompact && styles.heroBottomRowCompact]}>
+          <InlineMetric
+            label="Monthly surplus"
+            value={formatCurrency(dashboard.monthlySurplus)}
+            color={positiveSurplus ? colors.success : colors.danger}
+          />
           <InlineMetric label="Passive income" value={formatCurrency(dashboard.passiveIncomeMonthly)} color={colors.accentStrong} />
         </View>
       </Panel>
 
-      <Panel style={[styles.startPanel, isDesktopWeb && styles.startPanelDesktop]}>
+      <Panel style={[styles.startPanel, !isCompact && styles.startPanelWide]}>
         <View style={styles.startCopy}>
           <Text variant="label" subtle>
             START HERE
           </Text>
           <Text variant="section">Build a dashboard from scratch or add the next record.</Text>
-          <Text subtle>OzWealthman should grow from real user inputs: profile, accounts, investments, properties, super, bills and SMSF records.</Text>
+          <Text subtle>
+            OzWealthman should grow from real user inputs: profile, accounts, investments, properties, super, bills and SMSF
+            records.
+          </Text>
         </View>
         <View style={styles.startActions}>
           <StartAction icon="add-circle-outline" label="Start setup" onPress={() => router.push('/onboarding')} />
@@ -132,7 +149,7 @@ export function HomeDashboardScreen() {
           <View style={styles.sectionSpacing}>
             <SectionHeader title="Portfolio allocation" action="Tap assets" />
           </View>
-      <Panel style={styles.allocationPanel}>
+          <Panel style={styles.allocationPanel}>
             <AllocationChart items={dashboard.allocation} colors={colors} />
           </Panel>
         </View>
@@ -143,7 +160,11 @@ export function HomeDashboardScreen() {
           </View>
           <Panel style={styles.insightPanel}>
             {dashboard.warnings.map((warning, index) => (
-              <Pressable key={warning} style={[styles.insightRow, { borderBottomColor: colors.border }]} onPress={() => router.push(index > 1 ? '/(tabs)/smsf' : '/(tabs)/ai')}>
+              <Pressable
+                key={warning}
+                style={[styles.insightRow, { borderBottomColor: colors.border }]}
+                onPress={() => router.push(index > 1 ? '/(tabs)/smsf' : '/(tabs)/ai')}
+              >
                 <View style={[styles.insightIcon, { backgroundColor: warning.includes('below') || warning.includes('tight') ? '#3A2A12' : '#143425' }]}>
                   <Ionicons
                     name={warning.includes('below') || warning.includes('tight') ? 'warning-outline' : 'checkmark-circle-outline'}
@@ -302,7 +323,7 @@ function StartAction({ icon, label, onPress }: { icon: keyof typeof Ionicons.gly
 
 function AllocationChart({ items, colors }: { items: AllocationItem[]; colors: WealthColors }) {
   return (
-      <View style={styles.allocationWrap}>
+    <View style={styles.allocationWrap}>
       <View style={[styles.segmentTrack, { backgroundColor: colors.surfaceRaised }]}>
         {items.map((item) => (
           <View
@@ -414,8 +435,8 @@ const styles = StyleSheet.create({
   },
   askButton: {
     alignItems: 'center',
-    borderWidth: 1,
     borderRadius: 8,
+    borderWidth: 1,
     height: 48,
     justifyContent: 'center',
     width: 48,
@@ -455,8 +476,12 @@ const styles = StyleSheet.create({
   heroTopRow: {
     alignItems: 'flex-start',
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexWrap: 'wrap',
     gap: 12,
+    justifyContent: 'space-between',
+  },
+  heroTopRowCompact: {
+    flexDirection: 'column',
   },
   heroValue: {
     fontSize: 36,
@@ -474,6 +499,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 7,
   },
+  statusPillCompact: {
+    alignSelf: 'flex-start',
+  },
   liveDot: {
     borderRadius: 4,
     height: 8,
@@ -484,12 +512,20 @@ const styles = StyleSheet.create({
   },
   heroBottomRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 12,
+  },
+  heroBottomRowCompact: {
+    flexDirection: 'column',
+  },
+  inlineMetric: {
+    flex: 1,
+    gap: 4,
   },
   startPanel: {
     gap: 18,
   },
-  startPanelDesktop: {
+  startPanelWide: {
     alignItems: 'center',
     flexDirection: 'row',
   },
@@ -499,8 +535,10 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   startActions: {
+    flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+    justifyContent: 'flex-end',
   },
   startAction: {
     alignItems: 'center',
@@ -510,10 +548,6 @@ const styles = StyleSheet.create({
     gap: 8,
     minHeight: 42,
     paddingHorizontal: 12,
-  },
-  inlineMetric: {
-    flex: 1,
-    gap: 4,
   },
   metricGrid: {
     flexDirection: 'row',
@@ -601,9 +635,9 @@ const styles = StyleSheet.create({
   },
   allocationLeft: {
     alignItems: 'center',
+    flex: 1,
     flexDirection: 'row',
     gap: 12,
-    flex: 1,
   },
   allocationDot: {
     borderRadius: 5,

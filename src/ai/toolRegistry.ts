@@ -455,13 +455,11 @@ export function confirmPendingAction(actionOrId: PendingAction | string): ToolRe
   pendingActions.set(actionId, confirmedAction);
 
   return {
-    message:
-      'Confirmed. The mocked write layer marked the action as saved and recalculated the dashboard. Production wiring should persist the payload through Supabase before recalculation.',
+    message: 'Confirmed. The pending action is approved and ready for the shared data layer to persist it.',
     data: {
       actionId,
       status: 'confirmed',
       committedPayload: confirmedAction.payload,
-      recalculatedDashboard: getDashboardSummary(demoData),
     },
   };
 }

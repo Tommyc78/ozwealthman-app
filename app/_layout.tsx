@@ -9,18 +9,19 @@ import { AuthProvider, useAuth } from '@/contexts/AuthProvider';
 function AuthGate() {
   const { user, loading } = useAuth();
   const segments = useSegments();
+  const pathSegments = segments as string[];
   const router = useRouter();
   const { colors } = useWealthTheme();
 
   useEffect(() => {
     if (loading) return;
-    const inAuthGroup = segments[0] === '(auth)';
+    const inAuthGroup = pathSegments[0] === '(auth)' || pathSegments.includes('login');
     if (!user && !inAuthGroup) {
-      router.replace('/(auth)/login');
+      router.replace('/(auth)/login' as never);
     } else if (user && inAuthGroup) {
-      router.replace('/(tabs)');
+      router.replace('/(tabs)' as never);
     }
-  }, [user, loading, segments]);
+  }, [loading, pathSegments, router, user]);
 
   if (loading) {
     return (
