@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
 import { Dimensions, Pressable, StyleSheet, View } from 'react-native';
 import { TextInput } from 'react-native';
+import { Platform } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import { router } from 'expo-router';
 import { MetricRow } from '@/components/MetricRow';
@@ -12,6 +13,7 @@ import { SectionHeader } from '@/components/SectionHeader';
 import { Text } from '@/components/Text';
 import { useAppData } from '@/data/AppDataProvider';
 import { getBullionLots, getSMSFSummary } from '@/services/calculations';
+import { buildSMSFAuditPackReadiness, SMSF_AUDIT_PACK_SECTIONS, SMSFAuditPackUpload } from '@/services/smsfAuditPackService';
 import { getSMSFProjectionScenario } from '@/services/smsfProjectionService';
 import { useWealthTheme } from '@/theme/ThemeProvider';
 import { ContributionFrequency } from '@/types/models';
@@ -25,6 +27,7 @@ export function SMSFPortfolioScreen() {
   const [ledgerItems, setLedgerItems] = useState<Array<{ id: string; type: string; label: string; quantity: string; amount: string; date: string }>>([]);
   const [confirmedLedgerItems, setConfirmedLedgerItems] = useState<Array<{ id: string; type: string; label: string; quantity: string; amount: string; date: string }>>([]);
   const [entry, setEntry] = useState({ type: 'ETF units', label: 'VGS', quantity: '', amount: '', date: '2026-04-20' });
+  const [auditUploads, setAuditUploads] = useState<SMSFAuditPackUpload[]>([]);
   const [projectionInputs, setProjectionInputs] = useState({
     extraContributionAmount: '500',
     contributionFrequency: 'monthly' as ContributionFrequency,
@@ -38,6 +41,7 @@ export function SMSFPortfolioScreen() {
     drawdownRate: '4',
   });
   const smsf = getSMSFSummary(data);
+  const auditPack = useMemo(() => buildSMSFAuditPackReadiness(auditUploads), [auditUploads]);
   const smsfAccountIds = new Set(data.accounts.filter((account) => account.is_smsf).map((account) => account.id));
   const bullionLots = getBullionLots(data).filter((lot) => smsfAccountIds.has(lot.account_id));
   const smsfShares = data.shareHoldings.filter((holding) => smsfAccountIds.has(holding.account_id));
@@ -75,6 +79,54 @@ export function SMSFPortfolioScreen() {
   );
   const projectionChartPoints = projection.points.filter((point, index) => index === 0 || point.age === projection.preservationPoint.age || point.age === 67 || point.age % 5 === 0);
   const chartWidth = Math.max(Math.min(Dimensions.get('window').width - 360, 1040), 320);
+
+  const addUpload = (sectionId: string, files: Array<{ name: string; sizeKb?: number }>) => {
+    if (files.length === 0) {
+      return;
+    }
+    setAuditUploads((current) => {
+      const existing = current.find((upload) => upload.sectionId === sectionId);
+      const nextFiles = files.map((file) => ({
+        ...file,
+        uploadedAt: new Date().toISOString(),
+      }));
+      if (existing) {
+        return current.map((upload) =>
+          upload.sectionId === sectionId ? { ...upload, files: [...nextFiles, ...upload.files] } : upload,
+        );
+      }
+      return [...current, { sectionId, files: nextFiles }];
+    });
+  };
+
+  const handleSectionUpload = (sectionId: string) => {
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.multiple = true;
+      input.onchange = () => {
+        const files = Array.from(input.files ?? []).map((file) => ({
+          name: file.name,
+          sizeKb: Math.round(file.size / 1024),
+        }));
+        addUpload(sectionId, files);
+      };
+      input.click();
+      return;
+    }
+
+    addUpload(sectionId, [{ name: 'Document placeholder selected', sizeKb: 0 }]);
+  };
+
+  const removeUpload = (sectionId: string, fileName: string) => {
+    setAuditUploads((current) =>
+      current
+        .map((upload) =>
+          upload.sectionId === sectionId ? { ...upload, files: upload.files.filter((file) => file.name !== fileName) } : upload,
+        )
+        .filter((upload) => upload.files.length > 0),
+    );
+  };
 
   return (
     <Screen contentContainerStyle={styles.screen}>
@@ -269,6 +321,123 @@ export function SMSFPortfolioScreen() {
             </View>
           ))}
         </View>
+      </Panel>
+
+      <SectionHeader title="Audit and accountant pack" action="Upload evidence, then generate a working pack" />
+      <Panel style={[styles.auditPanel, { backgroundColor: colors.surfaceRaised, borderColor: colors.accent }]}>
+        <View style={styles.projectionMetrics}>
+          <InlineMetric label="Pack readiness" value={`${auditPack.readinessPercent}%`} color={auditPack.readinessPercent >= 75 ? colors.success : colors.warning} />
+          <InlineMetric label="Auditor ready" value={`${auditPack.auditorReadyPercent}%`} color={auditPack.auditorReadyPercent >= 80 ? colors.success : colors.warning} />
+          <InlineMetric label="Accountant ready" value={`${auditPack.accountantReadyPercent}%`} color={auditPack.accountantReadyPercent >= 80 ? colors.success : colors.warning} />
+        </View>
+        <Text subtle>
+          This should build the working paper bundle you send to the accountant and the independent auditor. The final signed annual return still comes after their review and sign-off.
+        </Text>
+        <View style={styles.signalStack}>
+          {auditPack.recommendedNextSteps.map((step) => (
+            <View key={step} style={[styles.signalRow, { borderBottomColor: colors.border }]}>
+              <Ionicons name="document-text-outline" color={colors.accentStrong} size={18} />
+              <Text subtle style={styles.signalText}>
+                {step}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </Panel>
+
+      <SectionHeader title="Evidence intake" action="Upload by folder or evidence class" />
+      <View style={styles.auditStack}>
+        {SMSF_AUDIT_PACK_SECTIONS.map((section) => {
+          const upload = auditUploads.find((item) => item.sectionId === section.id);
+          const count = upload?.files.length ?? 0;
+          const isReady = count > 0;
+          return (
+            <Panel key={section.id} style={styles.auditCard}>
+              <View style={styles.auditHeader}>
+                <View style={styles.auditHeaderCopy}>
+                  <Text weight="800">{section.title}</Text>
+                  <Text variant="small" subtle>
+                    {section.description}
+                  </Text>
+                </View>
+                <View
+                  style={[
+                    styles.auditStatusPill,
+                    {
+                      backgroundColor: isReady ? `${colors.success}18` : `${colors.warning}18`,
+                      borderColor: isReady ? colors.success : colors.warning,
+                    },
+                  ]}
+                >
+                  <Text variant="small" weight="800" style={{ color: isReady ? colors.success : colors.warning }}>
+                    {isReady ? `${count} file${count === 1 ? '' : 's'}` : section.critical ? 'Critical' : 'Optional'}
+                  </Text>
+                </View>
+              </View>
+              <Text variant="small" subtle>
+                Examples: {section.examples.join(' | ')}
+              </Text>
+              <PrimaryButton label={`Upload ${section.title}`} onPress={() => handleSectionUpload(section.id)} />
+              {upload ? (
+                <View style={styles.auditFileList}>
+                  {upload.files.map((file) => (
+                    <View key={`${section.id}-${file.name}`} style={[styles.auditFileRow, { borderBottomColor: colors.border }]}>
+                      <View style={styles.auditFileCopy}>
+                        <Text weight="800">{file.name}</Text>
+                        <Text variant="small" subtle>
+                          {file.sizeKb ? `${file.sizeKb} KB` : 'Selected'} - {formatDate(file.uploadedAt.slice(0, 10))}
+                        </Text>
+                      </View>
+                      <Pressable onPress={() => removeUpload(section.id, file.name)} style={styles.smallAction}>
+                        <Text weight="900" style={{ color: colors.danger }}>
+                          Remove
+                        </Text>
+                      </Pressable>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+            </Panel>
+          );
+        })}
+      </View>
+
+      <SectionHeader title="Pack outputs" action="What OzWealthman should generate" />
+      <Panel style={styles.assetsPanel}>
+        {auditPack.packOutputs.map((output) => (
+          <View key={output} style={[styles.assetRow, { borderBottomColor: colors.border }]}>
+            <View style={[styles.iconBox, { backgroundColor: `${colors.accentStrong}22` }]}>
+              <Ionicons name="folder-open-outline" color={colors.accentStrong} size={18} />
+            </View>
+            <Text subtle style={styles.signalText}>
+              {output}
+            </Text>
+          </View>
+        ))}
+        {auditPack.criticalMissing.length > 0 ? (
+          <View style={styles.signalStack}>
+            <Text variant="label" subtle>
+              MISSING CRITICAL EVIDENCE
+            </Text>
+            {auditPack.criticalMissing.map((section) => (
+              <Text key={section.id} variant="small" style={{ color: colors.warning }}>
+                - {section.title}
+              </Text>
+            ))}
+          </View>
+        ) : (
+          <View style={[styles.savingsBox, { backgroundColor: `${colors.success}15`, borderColor: colors.success }]}>
+            <Ionicons name="checkmark-circle-outline" color={colors.success} size={22} />
+            <View style={styles.savingsCopy}>
+              <Text weight="900" style={{ color: colors.success }}>
+                Core evidence looks present
+              </Text>
+              <Text subtle>
+                Next step is to hand the working pack to the accountant and independent auditor, then let the platform assemble the final retained compliance pack after sign-off.
+              </Text>
+            </View>
+          </View>
+        )}
       </Panel>
 
       <SectionHeader title="Add SMSF ledger item" action="Units, metals, crypto, cash" />
@@ -926,6 +1095,45 @@ const styles = StyleSheet.create({
   analyserPanel: {
     gap: 16,
   },
+  auditPanel: {
+    gap: 14,
+  },
+  auditStack: {
+    gap: 12,
+  },
+  auditCard: {
+    gap: 10,
+  },
+  auditHeader: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'space-between',
+  },
+  auditHeaderCopy: {
+    flex: 1,
+    gap: 4,
+  },
+  auditStatusPill: {
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+  },
+  auditFileList: {
+    gap: 8,
+  },
+  auditFileRow: {
+    alignItems: 'center',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    gap: 10,
+    paddingBottom: 8,
+  },
+  auditFileCopy: {
+    flex: 1,
+    gap: 3,
+  },
   strategyGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -951,5 +1159,17 @@ const styles = StyleSheet.create({
   },
   signalText: {
     flex: 1,
+  },
+  savingsBox: {
+    alignItems: 'flex-start',
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 12,
+    padding: 14,
+  },
+  savingsCopy: {
+    flex: 1,
+    gap: 4,
   },
 });
