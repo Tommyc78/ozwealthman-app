@@ -1,6 +1,6 @@
 import { PropsWithChildren, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { router, usePathname } from 'expo-router';
+import { Href, router, usePathname } from 'expo-router';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { Text } from '@/components/Text';
 import { useAppData } from '@/data/AppDataProvider';
@@ -150,6 +150,16 @@ export function WebAppShell({ children }: PropsWithChildren) {
             >
               <Ionicons name="add-circle-outline" color={colors.accentStrong} size={18} />
               <Text weight="900">Start setup</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => router.push('/(tabs)/capture' as Href)}
+              style={({ pressed }) => [
+                styles.actionButton,
+                { backgroundColor: colors.surfaceRaised, borderColor: colors.border, opacity: pressed ? 0.82 : 1 },
+              ]}
+            >
+              <Ionicons name="flash-outline" color={colors.accentStrong} size={18} />
+              <Text weight="900">Capture</Text>
             </Pressable>
             <Pressable
               onPress={() => router.push('/(tabs)/analyser')}

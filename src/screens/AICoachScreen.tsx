@@ -1,6 +1,7 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
-import { assistantProviders, AssistantProviderKey, createWealthAssistantResponse } from '@/ai/openaiClient';
+import { assistantProviders, AssistantProviderKey, createWealthAssistantResponse, getAssistantProviderStatuses } from '@/ai/openaiClient';
 import { cancelPendingAction, confirmPendingAction, PendingAction } from '@/ai/toolRegistry';
 import { MetricRow } from '@/components/MetricRow';
 import { Panel } from '@/components/Panel';
@@ -28,6 +29,7 @@ const chips = [
 export function AICoachScreen() {
   const { colors } = useWealthTheme();
   const { data, confirmAssistantPendingAction } = useAppData();
+  const providerStatuses = getAssistantProviderStatuses();
   const [input, setInput] = useState('');
   const [providerKey, setProviderKey] = useState<AssistantProviderKey>('oz_local');
   const [pendingAction, setPendingAction] = useState<PendingAction | undefined>();
@@ -134,7 +136,46 @@ export function AICoachScreen() {
           ))}
         </View>
         <MetricRow label="Active connector" value={assistantProviders.find((provider) => provider.key === providerKey)?.label ?? providerKey} />
-        <MetricRow label="Status" value={assistantProviders.find((provider) => provider.key === providerKey)?.status ?? 'live'} />
+        <MetricRow label="Status" value={providerStatuses.find((provider) => provider.key === providerKey)?.statusLabel ?? 'Unknown'} />
+      </Panel>
+
+      <SectionHeader title="Connector readiness" action="Backend truth" />
+      <Panel style={[styles.readinessGrid, { backgroundColor: colors.surfaceRaised }]}>
+        {providerStatuses.map((provider) => {
+          const active = provider.key === providerKey;
+          const toneColor =
+            provider.runtimeStatus === 'live_local'
+              ? colors.success
+              : provider.runtimeStatus === 'ready_backend'
+                ? colors.accentStrong
+                : provider.runtimeStatus === 'enterprise_pending'
+                  ? colors.warning
+                  : colors.danger;
+
+          return (
+            <Panel key={provider.key} style={[styles.readinessCard, { backgroundColor: active ? colors.surfaceRaised : colors.surface, borderColor: active ? colors.accent : colors.border }]}>
+              <View style={styles.readinessTop}>
+                <Text weight="900">{provider.shortLabel}</Text>
+                <Ionicons
+                  name={
+                    provider.runtimeStatus === 'live_local'
+                      ? 'checkmark-circle-outline'
+                      : provider.runtimeStatus === 'ready_backend'
+                        ? 'cloud-done-outline'
+                        : provider.runtimeStatus === 'enterprise_pending'
+                          ? 'construct-outline'
+                          : 'cloud-offline-outline'
+                  }
+                  color={toneColor}
+                  size={18}
+                />
+              </View>
+              <Text variant="small" subtle>{provider.description}</Text>
+              <MetricRow label="Runtime" value={provider.statusLabel} />
+              <MetricRow label="Endpoint" value={provider.endpointConfigured ? 'Configured' : 'Not configured'} tone={provider.endpointConfigured ? 'positive' : 'warning'} />
+            </Panel>
+          );
+        })}
       </Panel>
 
       <SectionHeader title="Prompt shortcuts" />
@@ -148,6 +189,18 @@ export function AICoachScreen() {
         ))}
       </View>
 
+      <SectionHeader title="Capture by chat" action="One-tap commands" />
+      <Panel style={styles.capturePanel}>
+        <Text subtle>Use these to trigger real tool flows quickly, then confirm the structured change before it is saved.</Text>
+        <View style={styles.chips}>
+          {['Add $322 Chevron water bill for Logan Townhouse.', 'Record $2,600 SMSF rent for Logan Townhouse.', 'Buy $10,000 of IVV in my personal portfolio.', 'Record 1oz gold purchase for my SMSF.'].map((prompt) => (
+            <Pressable key={prompt} style={[styles.chip, { backgroundColor: colors.surface, borderColor: colors.border }]} onPress={() => sendCommand(prompt)}>
+              <Text variant="small" weight="800">{prompt}</Text>
+            </Pressable>
+          ))}
+        </View>
+      </Panel>
+
       {pendingAction ? (
         <Panel style={[styles.pendingPanel, { borderColor: colors.warning, backgroundColor: colors.surfaceRaised }]}>
           <Text variant="section">{pendingAction.title}</Text>
@@ -158,7 +211,7 @@ export function AICoachScreen() {
             <PrimaryButton label="Confirm save" onPress={() => resolvePending(pendingAction, 'confirm')} />
             <PrimaryButton label="Cancel" onPress={() => resolvePending(pendingAction, 'cancel')} variant="secondary" />
           </View>
-        </Panel>
+      </Panel>
       ) : null}
 
       <SectionHeader title="Conversation" />
@@ -272,6 +325,20 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   connectorPanel: {
+    gap: 12,
+  },
+  readinessGrid: {
+    gap: 12,
+  },
+  readinessCard: {
+    gap: 10,
+  },
+  readinessTop: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  capturePanel: {
     gap: 12,
   },
   pendingPanel: {

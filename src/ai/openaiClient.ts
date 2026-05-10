@@ -33,6 +33,12 @@ export type AssistantProviderDefinition = {
   endpointEnvVar?: string;
 };
 
+export type AssistantProviderRuntimeStatus = AssistantProviderDefinition & {
+  endpointConfigured: boolean;
+  runtimeStatus: 'live_local' | 'ready_backend' | 'missing_backend' | 'enterprise_pending';
+  statusLabel: string;
+};
+
 export const wealthAssistantSystemPrompt =
   'You are OzWealthman, an Australian wealth tracking assistant. Do not invent balances, prices, transactions, or portfolio values. Use tools for stored data and calculations. Ask for confirmation before material writes. Do not provide licensed personal financial advice.';
 
@@ -69,6 +75,44 @@ export const assistantProviders: AssistantProviderDefinition[] = [
     endpointEnvVar: 'EXPO_PUBLIC_COPILOT_EDGE_URL',
   },
 ];
+
+export function getAssistantProviderStatuses(): AssistantProviderRuntimeStatus[] {
+  return assistantProviders.map((provider) => {
+    const endpointConfigured =
+      provider.endpointEnvVar === 'EXPO_PUBLIC_OPENAI_EDGE_URL'
+        ? Boolean(process.env.EXPO_PUBLIC_OPENAI_EDGE_URL)
+        : provider.endpointEnvVar === 'EXPO_PUBLIC_ANTHROPIC_EDGE_URL'
+          ? Boolean(process.env.EXPO_PUBLIC_ANTHROPIC_EDGE_URL)
+          : provider.endpointEnvVar === 'EXPO_PUBLIC_COPILOT_EDGE_URL'
+            ? Boolean(process.env.EXPO_PUBLIC_COPILOT_EDGE_URL)
+            : false;
+
+    if (provider.key === 'oz_local') {
+      return {
+        ...provider,
+        endpointConfigured: true,
+        runtimeStatus: 'live_local',
+        statusLabel: 'Live in app',
+      };
+    }
+
+    if (provider.status === 'enterprise_setup') {
+      return {
+        ...provider,
+        endpointConfigured,
+        runtimeStatus: endpointConfigured ? 'ready_backend' : 'enterprise_pending',
+        statusLabel: endpointConfigured ? 'Backend configured' : 'Enterprise setup needed',
+      };
+    }
+
+    return {
+      ...provider,
+      endpointConfigured,
+      runtimeStatus: endpointConfigured ? 'ready_backend' : 'missing_backend',
+      statusLabel: endpointConfigured ? 'Backend configured' : 'Missing backend endpoint',
+    };
+  });
+}
 
 function todayIsoDate() {
   return new Date().toISOString().slice(0, 10);

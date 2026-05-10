@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { Image, Pressable, StyleSheet, Switch, TextInput, View } from 'react-native';
-import { router } from 'expo-router';
+import { Href, router } from 'expo-router';
 import { MetricRow } from '@/components/MetricRow';
 import { Panel } from '@/components/Panel';
 import { PrimaryButton } from '@/components/PrimaryButton';
@@ -59,7 +59,7 @@ export function OnboardingScreen() {
           title="Add one record"
           helper="Go straight to the right workspace and capture a transaction, bill, holding or SMSF entry."
           icon="add-circle-outline"
-          onPress={() => router.replace('/(tabs)/investments')}
+          onPress={() => router.replace('/(tabs)/capture' as Href)}
         />
       </View>
 

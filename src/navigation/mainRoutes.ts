@@ -28,6 +28,14 @@ export const mainRoutes: MainRoute[] = [
     webDescription: 'Cashflow, categories and recurring bills',
   },
   {
+    key: 'capture',
+    label: 'Capture',
+    shortLabel: 'Capture',
+    href: '/(tabs)/capture' as Href,
+    icon: 'add-circle-outline',
+    webDescription: 'Quick entry for investments, bills, SMSF and super updates',
+  },
+  {
     key: 'property',
     label: 'Property',
     shortLabel: 'Property',

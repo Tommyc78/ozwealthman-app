@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { router, Tabs } from 'expo-router';
+import { Href, router, Tabs } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,13 +17,13 @@ const icons: Record<string, IconName> = Object.fromEntries(mainRoutes.map((route
 
 const compactLabels: Record<string, string> = {
   index: 'Home',
-  budget: 'Budget',
+  capture: 'Capture',
   investments: 'Invest',
   ai: 'AI',
   settings: 'More',
 };
 
-const primaryTabs = ['index', 'budget', 'investments', 'ai'] as const;
+const primaryTabs = ['index', 'capture', 'investments', 'ai'] as const;
 const primaryTabSet = new Set(primaryTabs);
 
 export function MobileTabNavigator() {
@@ -85,9 +85,36 @@ function CompactMobileTabBar({ state, navigation, compact }: BottomTabBarProps &
 
       {moreOpen ? (
         <View style={[styles.moreSheet, { backgroundColor: colors.surface, borderColor: colors.border, bottom: 72 + Math.max(insets.bottom, 8) }]}>
-          <Text variant="small" subtle weight="800">
-            MORE TOOLS
-          </Text>
+          <View style={[styles.moreHero, { backgroundColor: colors.surfaceRaised, borderColor: colors.accent }]}>
+            <View style={styles.moreHeroTop}>
+              <View style={styles.moreHeroCopy}>
+                <Text variant="small" subtle weight="800">
+                  OZWEALTHMAN
+                </Text>
+                <Text variant="section">More tools</Text>
+                <Text variant="small" subtle>
+                  Property, deal modelling, retirement, SMSF and settings in one command sheet.
+                </Text>
+              </View>
+              <View style={[styles.moreHeroBadge, { backgroundColor: `${colors.accent}18`, borderColor: colors.accent }]}>
+                <Ionicons name="sparkles-outline" color={colors.accentStrong} size={18} />
+              </View>
+            </View>
+            <View style={styles.quickActionRow}>
+              <Pressable onPress={() => { setMoreOpen(false); router.push('/(tabs)/capture' as Href); }} style={[styles.quickAction, { backgroundColor: colors.accent }]}>
+                <Ionicons name="flash-outline" color={colors.background} size={16} />
+                <Text variant="small" weight="900" style={{ color: colors.background }}>
+                  Quick capture
+                </Text>
+              </Pressable>
+              <Pressable onPress={() => { setMoreOpen(false); router.push('/(tabs)/ai'); }} style={[styles.quickAction, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 }]}>
+                <Ionicons name="chatbubble-ellipses-outline" color={colors.accentStrong} size={16} />
+                <Text variant="small" weight="900">
+                  Ask AI
+                </Text>
+              </Pressable>
+            </View>
+          </View>
           <View style={styles.moreGrid}>
             {utilityRoutes.map((route) => {
               const selected = activeRouteName === route.key;
@@ -180,13 +207,48 @@ const styles = StyleSheet.create({
   },
   moreSheet: {
     borderRadius: 8,
-    borderWidth: 1,
     gap: 12,
     left: 12,
-    padding: 14,
     position: 'absolute',
     right: 12,
     zIndex: 40,
+  },
+  moreHero: {
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 12,
+    padding: 14,
+  },
+  moreHeroTop: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'space-between',
+  },
+  moreHeroCopy: {
+    flex: 1,
+    gap: 3,
+  },
+  moreHeroBadge: {
+    alignItems: 'center',
+    borderRadius: 8,
+    borderWidth: 1,
+    height: 36,
+    justifyContent: 'center',
+    width: 36,
+  },
+  quickActionRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  quickAction: {
+    alignItems: 'center',
+    borderRadius: 8,
+    flexDirection: 'row',
+    gap: 8,
+    minHeight: 38,
+    paddingHorizontal: 12,
   },
   moreGrid: {
     gap: 10,
