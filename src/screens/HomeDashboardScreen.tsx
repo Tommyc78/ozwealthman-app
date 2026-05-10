@@ -146,7 +146,7 @@ export function HomeDashboardScreen() {
       </View>
 
       <View style={[styles.desktopColumns, !isDesktopWeb && styles.mobileStack]}>
-        <View style={styles.desktopPrimary}>
+        <View style={[styles.desktopPrimary, !isDesktopWeb && styles.mobileColumnSection]}>
           <View style={styles.sectionSpacing}>
             <SectionHeader title="Portfolio allocation" action="Tap assets" />
           </View>
@@ -155,7 +155,7 @@ export function HomeDashboardScreen() {
           </Panel>
         </View>
 
-        <View style={styles.desktopSecondary}>
+        <View style={[styles.desktopSecondary, !isDesktopWeb && styles.mobileColumnSection]}>
           <View style={styles.sectionSpacing}>
             <SectionHeader title="Warnings and opportunities" />
           </View>
@@ -187,7 +187,7 @@ export function HomeDashboardScreen() {
       </View>
 
       <View style={[styles.desktopColumns, !isDesktopWeb && styles.mobileStack]}>
-        <View style={styles.desktopSecondary}>
+        <View style={[styles.desktopSecondary, !isDesktopWeb && styles.mobileColumnSection]}>
           <View style={styles.sectionSpacing}>
             <SectionHeader title="Drill-downs" />
           </View>
@@ -225,7 +225,7 @@ export function HomeDashboardScreen() {
           </View>
         </View>
 
-        <View style={styles.desktopPrimary}>
+        <View style={[styles.desktopPrimary, !isDesktopWeb && styles.mobileColumnSection]}>
           <View style={styles.sectionSpacing}>
             <SectionHeader title="Recent activity" action="Manual data" />
           </View>
@@ -616,6 +616,9 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 12,
     minWidth: 0,
+  },
+  mobileColumnSection: {
+    flex: 0,
   },
   allocationPanel: {
     paddingTop: 18,
